@@ -1,0 +1,119 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-query.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
+<link rel="import" href="../../bower_components/app-storage/app-indexeddb-mirror/app-indexeddb-mirror.html">
+
+<link rel="import" href="../storm-item-view/storm-item-view.html">
+
+<dom-module id="storm-list-view">
+  <template>
+    <style>
+      #errorToast {
+        --paper-toast-color: var(--paper-red-100);
+      }
+    </style>
+    <app-route route="{{route}}" data="{{routeData}}" tail="{{subRoute}}" pattern="/:view"></app-route>
+    <firebase-query id="query" app-name="storm" path="/storms" data="{{storms}}"></firebase-query>
+    <app-indexeddb-mirror session="[[user.uid]]" key="storms" data="{{storms}}" persisted-data="{{persistedStorms}}"></app-indexeddb-mirror>
+    <iron-pages
+      attr-for-selected="view"
+      selected="[[routeData.view]]"
+      fallback-selection="storm-view">
+      <div class="main" view="list">
+        <h1>List of Storms</h1>
+        <template is="dom-repeat" items="[[persistedStorms]]" as="storm">
+          <div>
+            <a href$="/storms/[[storm.$key]]">[[storm.internationalName]] ([[storm.localName]])</a>
+          </div>
+        </template>
+        <paper-button on-tap="_showAddDialog">Add new storm</paper-button>
+      </div>
+      <div view="storm-view">
+        <storm-item-view
+          storm-id="[[routeData.view]]" 
+          route="{{subRoute}}" 
+          user="[[user]]"
+          firebase-app="{{firebaseApp}}"></storm-item-view>
+      </div>
+    </iron-pages>
+
+    <paper-dialog id="addStormDialog" on-iron-overlay-closed="_addStormDialogClosed">
+      <h2>Add Storm</h2>
+      <paper-dialog-scrollable>
+        <paper-input label="International Name" value="{{stormToAdd.internationalName}}"></paper-input>
+        <paper-input label="Local Name" value="{{stormToAdd.localName}}"></paper-input>
+      </paper-dialog-scrollable>
+
+      <div class="buttons">
+        <paper-button dialog-dismiss>Cancel</paper-button>
+        <paper-button dialog-confirm autofocus>Accept</paper-button>
+      </div>
+    </paper-dialog>
+
+    <paper-toast id="messageToast" text="Storm was Added"></paper-toast>
+    <paper-toast id="errorToast" text="Something went wrong :("></paper-toast>
+  </template>
+  <script>
+    Polymer({
+      is: 'storm-list-view',
+
+      observers: [
+        '_viewChanged(routeData.view)',
+        '_pathChanged(route.path)'
+      ],
+
+      properties: {
+        stormToAdd: {
+          type: Object,
+          value: function() {
+            return {
+              internationalName: 'New Storm',
+              localName: 'Bagong Bagyo'
+            };
+          }
+        }
+      },
+
+      _showAddDialog: function() {
+        this.$.addStormDialog.opened = true;
+      },
+
+      _viewChanged: function(view) {
+        if (!view || view === '') {
+          this.set('routeData.view', 'list');
+        }
+      },
+
+      _pathChanged: function(path) {
+        if (!path) {
+          this.set('routeData.view', 'list');
+        }
+      },
+
+      _addStormDialogClosed: function(event) {
+        if (event.detail.confirmed) {
+          this.firebaseApp.database().ref('/storms/').push({
+            internationalName: this.stormToAdd.internationalName,
+            localName: this.stormToAdd.localName,
+            createdBy: {
+              name: this.user.displayName,
+              uid: this.user.uid
+            }
+          }).then(function() {
+            this.$.messageToast.opened = true;
+            this.stormToAdd.internationalName = '';
+            this.stormToAdd.localName = '';
+          }.bind(this)).catch(function() {
+            this.$.errorToast.opened = true;
+          }.bind(this));
+        }
+      }
+    });
+  </script>
+</dom-module>

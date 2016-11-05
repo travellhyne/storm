@@ -1,0 +1,104 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-query.html">
+<link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/app-storage/app-indexeddb-mirror/app-indexeddb-mirror.html">
+
+<link rel="import" href="track-list.html">
+
+<dom-module id="storm-item-view">
+  <template>
+    <app-route 
+      route="{{route}}" 
+      data="{{routeData}}" 
+      tail="{{subRoute}}"
+      pattern="/:view"></app-route>
+    <firebase-document 
+      id="stormDoc" 
+      app-name="storm" 
+      path="{{_computeStormDocPath(stormId)}}" 
+      data="{{storm}}"></firebase-document>
+    <firebase-query 
+      id="query" 
+      app-name="storm"
+      path="{{_computeStormTracksPath(stormId)}}"
+      data="{{tracks}}"></firebase-query>
+    <app-indexeddb-mirror 
+      id="stormMirror"
+      session="[[user.uid]]"
+      key="storms.[[stormId]]"
+      data="{{storm}}"
+      persisted-data="{{persistedStorm}}"></app-indexeddb-mirror>
+    <app-indexeddb-mirror 
+      id="tracksMirror"
+      session="[[user.uid]]"
+      key="storms.[[stormId]].tracks"
+      data="{{tracks}}"
+      persisted-data="{{persistedTracks}}"></app-indexeddb-mirror>
+    <iron-pages
+      selected="[[selectedView]]"
+      attr-for-selected="view">
+      <div class="main" view="info">
+        <paper-input 
+          label="International Name" 
+          value="{{persistedStorm.internationalName}}"
+        ></paper-input>
+        <paper-input 
+          label="Local Name"
+          value="{{persistedStorm.localName}}"></paper-input>
+        <div>
+          <a href$="/storms/[[stormId]]/tracks">Go to tracks</a>
+        </div>
+      </div>
+      <div class="list" view="tracks">
+        <track-list
+          user="[[user]]"
+          tracks="[[persistedTracks]]"
+          storm-id="[[stormId]]"
+          route="{{subRoute}}"
+          on-track-add="_addTrack"
+          ></track-list>
+      </div>
+    </iron-pages>
+  </template>
+  <script>
+    Polymer({
+      is: 'storm-item-view',
+      properties: {
+        selectedView: String
+      },
+      observers: [
+        '_pathChanged(route.path)'
+      ],
+      _pathChanged: function(path) {
+        if (!path) {
+          this.selectedView = 'info';
+        } else {
+          this.selectedView = this.routeData.view;
+        }
+      },
+
+      _computeStormDocPath: function(id) {
+        if (!!id && id !== 'list') {
+          return '/storms/' + id;
+        }
+      },
+
+      _computeStormTracksPath: function(id) {
+        if (!!id && id !== 'list') {
+          return '/storms/' + id + '/tracks';
+        }
+      },
+
+      _addTrack: function() {
+        var path = '/storms/' + this.stormId + '/tracks';
+        this.firebaseApp.database().ref(path).push({
+          index: this.tracks.length
+        });
+      }
+    });
+  </script>
+</dom-module>

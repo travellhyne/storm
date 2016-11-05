@@ -1,0 +1,58 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+
+<link rel="import" href="../track-editor/track-editor.html">
+
+<dom-module id="track-list">
+  <template>
+    <app-route
+      route="{{route}}"
+      route-data="{{routeData}}"
+      pattern="/:view"></app-route>
+    <iron-pages 
+      attr-for-selected="view"
+      selected="{{selectedView}}">
+
+      <div class="main" view="list">
+        <h1>Tracks</h1>
+        <template is="dom-repeat" items="{{tracks}}" as="track">
+          <div>
+            <a href="/storms/[[stormId]]/tracks/[[track.$key]]">Track #[[track.index]]</a>
+          </div>
+        </template>
+        <paper-button on-tap="_addTrack">Add new track</paper-button>
+      </div>
+
+      <div name="track-view">
+        <track-editor></track-editor>
+      </div>
+    </iron-pages>
+  </template>
+  <script>
+    Polymer({
+      is: 'track-list',
+
+      properties: {
+        selectedView: String
+      },
+
+      observers: [
+        '_pathChanged(route.path)'
+      ],
+
+      _addTrack: function() {
+        this.fire('add-track');
+      },
+
+      _pathChanged: function(path) {
+        if (!path) {
+          this.selectedView = 'list';
+        } else {
+          this.selectedView = 'track-view';
+        }
+      }
+    });
+  </script>
+</dom-module>

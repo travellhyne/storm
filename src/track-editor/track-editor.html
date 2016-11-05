@@ -1,0 +1,54 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="../../bower_components/app-storage/app-indexeddb-mirror/app-indexeddb-mirror.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+
+<dom-module id="track-editor">
+  <template>
+    <style>
+      .drawer-panel {
+        @apply(--layout);
+        @apply(--layout-horizontal);
+      }
+
+      .drawer {
+        width: 400px;
+        background-color: #e8e8e8;
+      }
+
+      .main {
+        background-color: #fff;
+      }
+    </style>
+    <firebase-document
+      app-name="storm"
+      path="[[_calculateTrackDocPath(stormId, trackId)]]"
+      data="{{track}}"></firebase-document>
+    <app-indexeddb-mirror 
+      session="[[user.uid]]"
+      key="[[_calculateTrackDocPath(stormId, trackId)]]"
+      data="{{track}}"
+      persisted-data="{{persistedTrack}}"></app-indexeddb-mirror>
+    <div class="drawer-panel">
+      <div class="drawer">
+        
+      </div>
+      <div class="main">
+        
+      </div>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'track-editor',
+
+      _calculateTrackDocPath: function(stormId, trackId) {
+        if (!stormId && !trackId && stormId !== 'list' && trackId !== 'info') {
+          return '/storms/' + stormId + '/tracks/' + trackId;
+        }
+      }
+    });
+  </script>
+</dom-module>

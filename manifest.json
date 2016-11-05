@@ -1,0 +1,7 @@
+{
+  "name": "storm",
+  "short_name": "storm",
+  "description": "New and improved storm app",
+  "start_url": "/",
+  "display": "standalone"
+}

@@ -1,0 +1,80 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-auth.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-app.html">
+<link rel="import" href="../../bower_components/app-route/app-location.html">
+<link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../storm-login/storm-login.html">
+<link rel="import" href="../storm-toolbar/storm-toolbar.html">
+<link rel="import" href="../storm-list-view/storm-list-view.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="storm-app">
+  <template>
+    <style include="storm-app-shared-styles"></style>
+    <storm-toolbar signed-in="[[signedIn]]" on-sign-out="signOut"></storm-toolbar>
+    <storm-login on-sign-in="signIn" signed-in="[[signedIn]]" disabled="[[!online]]"></storm-login>
+    <firebase-app 
+      name="storm" 
+      api-key="AIzaSyDXtm1EO_MIESR81foqj04LzkWQgv38JDs" 
+      auth-domain="storm-84664.firebaseapp.com" 
+      database-url="https://storm-84664.firebaseio.com"
+      app="{{firebaseApp}}"></firebase-app>
+
+    <firebase-auth 
+      id="auth" 
+      app-name="storm" 
+      provider="google" 
+      signed-in="{{signedIn}}" 
+      user="{{user}}"></firebase-auth>
+
+    <app-location route="{{route}}"></app-location>
+    <app-route
+      route="{{route}}"
+      pattern="/:view"
+      data="{{routeData}}"
+      tail="{{subRoute}}"></app-route>
+    
+    <iron-pages 
+      attr-for-selected="view" 
+      selected="[[routeData.view]]"
+      fallback-selection="not-found">
+      <div view="home">
+        <h1>Home</h1>
+        <span><a href="/storms">Go to storms</a></span>
+      </div>
+      <div view="storms">
+        <storm-list-view route="{{subRoute}}" user="[[user]]" firebase-app="{{firebaseApp}}"></storm-list-view>
+      </div>
+      <div view="not-found">Not found</div>
+    </iron-pages>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'storm-app',
+
+      observers: [
+        '_viewChanged(routeData.view)'
+      ],
+
+      signIn: function() {
+        this.$.auth.signInWithPopup();
+      },
+
+      signOut: function() {
+        if (this.$.auth) {
+          this.$.auth.signOut();
+        }
+      },
+
+      _viewChanged: function(view) {
+        if (!view) {
+          this.set('routeData.view', 'home');
+        }
+      }
+    });
+  </script>
+</dom-module>
