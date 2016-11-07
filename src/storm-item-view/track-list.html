@@ -7,10 +7,21 @@
 
 <dom-module id="track-list">
   <template>
+    <style>
+      :host {
+        display: block;
+        height: 100%;
+      }
+
+      iron-pages, iron-pages > div {
+        height: 100%;
+      }
+    </style>
     <app-route
       route="{{route}}"
-      route-data="{{routeData}}"
-      pattern="/:view"></app-route>
+      data="{{routeData}}"
+      pattern="/:trackId"
+      tail="{{subRoute}}"></app-route>
     <iron-pages 
       attr-for-selected="view"
       selected="{{selectedView}}">
@@ -25,8 +36,12 @@
         <paper-button on-tap="_addTrack">Add new track</paper-button>
       </div>
 
-      <div name="track-view">
-        <track-editor></track-editor>
+      <div view="track-view">
+        <track-editor 
+          storm="[[storm]]" 
+          storm-id="[[stormId]]"
+          track-id="[[selectedTrack]]"
+          route="{{subRoute}}"></track-editor>
       </div>
     </iron-pages>
   </template>
@@ -35,11 +50,13 @@
       is: 'track-list',
 
       properties: {
-        selectedView: String
+        selectedView: String,
+        selectedTrack: String
       },
 
       observers: [
-        '_pathChanged(route.path)'
+        '_pathChanged(route.path)',
+        '_trackIdChanged(routeData.trackId)'
       ],
 
       _addTrack: function() {
@@ -51,6 +68,12 @@
           this.selectedView = 'list';
         } else {
           this.selectedView = 'track-view';
+        }
+      },
+      
+      _trackIdChanged: function(trackId) {
+        if (trackId) {
+          this.selectedTrack = trackId;
         }
       }
     });

@@ -11,6 +11,16 @@
 
 <dom-module id="storm-item-view">
   <template>
+    <style>
+      :host {
+        display: block;
+        height: 100%;
+      }
+
+      iron-pages, iron-pages > div {
+        height: 100%;
+      }
+    </style>
     <app-route 
       route="{{route}}" 
       data="{{routeData}}" 
@@ -59,7 +69,8 @@
           tracks="[[persistedTracks]]"
           storm-id="[[stormId]]"
           route="{{subRoute}}"
-          on-track-add="_addTrack"
+          on-add-track="_addTrack"
+          storm="[[persistedStorm]]"
           ></track-list>
       </div>
     </iron-pages>

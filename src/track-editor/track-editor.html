@@ -2,23 +2,48 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/polymerfire/firebase-document.html">
-<link rel="import" href="../../bower_components/app-storage/app-indexeddb-mirror/app-indexeddb-mirror.html">
 <link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+
+<link rel="import" href="present-data-form.html">
 
 <dom-module id="track-editor">
   <template>
     <style>
+      :host {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
       .drawer-panel {
+        height: 100%;
         @apply(--layout);
         @apply(--layout-horizontal);
       }
 
       .drawer {
+        height: 100%;
         width: 400px;
         background-color: #e8e8e8;
+        position: relative;
+      }
+
+      .drawer > iron-pages {
+        @apply(--layout-fit);
+        top: 48px;
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+      }
+
+      .drawer > iron-pages > div {
+        height: 100%;
       }
 
       .main {
+        @apply(--layout-flex);
+        height: 100%;
         background-color: #fff;
       }
     </style>
@@ -26,14 +51,20 @@
       app-name="storm"
       path="[[_calculateTrackDocPath(stormId, trackId)]]"
       data="{{track}}"></firebase-document>
-    <app-indexeddb-mirror 
-      session="[[user.uid]]"
-      key="[[_calculateTrackDocPath(stormId, trackId)]]"
-      data="{{track}}"
-      persisted-data="{{persistedTrack}}"></app-indexeddb-mirror>
     <div class="drawer-panel">
       <div class="drawer">
-        
+        <paper-tabs selected="{{selectedTab}}">
+          <paper-tab>Present Data</paper-tab>
+          <paper-tab>Forecast Data</paper-tab>
+          <paper-tab>Past Data</paper-tab>
+        </paper-tabs>
+        <iron-pages selected="{{selectedTab}}">
+          <div class="present-data">
+            <present-data-form storm="[[storm]]" track="{{track}}"></present-data-form>
+          </div>
+          <div class="forecast-data"></div>
+          <div class="past-data"></div>
+        </iron-pages>
       </div>
       <div class="main">
         
@@ -44,8 +75,15 @@
     Polymer({
       is: 'track-editor',
 
+      properties: {
+        selectedTab: {
+          type: Number,
+          value: 0
+        }
+      },
+
       _calculateTrackDocPath: function(stormId, trackId) {
-        if (!stormId && !trackId && stormId !== 'list' && trackId !== 'info') {
+        if (stormId && trackId && stormId !== 'list' && trackId !== 'info') {
           return '/storms/' + stormId + '/tracks/' + trackId;
         }
       }
