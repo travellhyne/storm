@@ -1,0 +1,81 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../utils/lodash-import.html">
+<link rel="import" href="../utils/moment-import.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/vaadin-date-picker/vaadin-date-picker.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+
+<dom-module id="datetime-picker">
+  <template>
+    <style>
+      .container {
+        @apply(--layout);
+        @apply(--layout-horizontal);
+      }
+      .hourPicker {
+        width: 100px;
+        margin-left: 5px;
+      }
+
+      .datePicker {
+        @apply(--layout-flex);
+      }
+    </style>
+    <div class="container">
+      <vaadin-date-picker class="datePicker" label="{{label}}" value="{{date}}"></vaadin-date-picker>
+      <paper-dropdown-menu label="Hour" class="hourPicker">
+        <paper-listbox class="dropdown-content" attr-for-selected="value" selected="{{time}}">
+          <paper-item value="00">12 AM</paper-item>
+          <paper-item value="01">1 AM</paper-item>
+          <paper-item value="02">2 AM</paper-item>
+          <paper-item value="03">3 AM</paper-item>
+          <paper-item value="04">4 AM</paper-item>
+          <paper-item value="05">5 AM</paper-item>
+          <paper-item value="06">6 AM</paper-item>
+          <paper-item value="07">7 AM</paper-item>
+          <paper-item value="08">8 AM</paper-item>
+          <paper-item value="09">9 AM</paper-item>
+          <paper-item value="10">10 AM</paper-item>
+          <paper-item value="11">11 AM</paper-item>
+          <paper-item value="12">12 PM</paper-item>
+          <paper-item value="13">1 PM</paper-item>
+          <paper-item value="14">2 PM</paper-item>
+          <paper-item value="15">3 PM</paper-item>
+          <paper-item value="16">4 PM</paper-item>
+          <paper-item value="17">5 PM</paper-item>
+          <paper-item value="18">6 PM</paper-item>
+          <paper-item value="19">7 PM</paper-item>
+          <paper-item value="20">8 PM</paper-item>
+          <paper-item value="21">9 PM</paper-item>
+          <paper-item value="22">10 PM</paper-item>
+          <paper-item value="23">11 PM</paper-item>
+        </paper-listbox>
+      </paper-dropdown-menu>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'datetime-picker',
+
+      properties: {
+        date: {
+          type: String,
+          value: moment().format('YYYY-MM-DD'),
+          notify: true,
+        },
+        time: {
+          type: String,
+          value: moment().format('HH'),
+          notify: true
+        },
+        label: String,
+      },
+
+      _computeDatetime: function(date, time) {
+        return date + '-' + time;
+      }
+    });
+  </script>
+</dom-module>
