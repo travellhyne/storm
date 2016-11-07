@@ -1,0 +1,93 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="datetime-picker.html">
+
+<dom-module id="present-data-form">
+  <template>
+    <style>
+      :host {
+        display: block;
+        padding: 8px 16px;
+        height: 100%;
+        overflow-y: scroll;
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+      }
+      
+      h2 {
+        margin: 0;
+        font-size: 20px;
+      }
+      
+      .row-form {
+        @apply(--layout-horizontal);
+      }
+      
+      .row-form > paper-input {
+        @apply(--layout-flex);
+      }
+      
+      .row-form >:not(:last-child) {
+        margin-right: 10px;
+      }
+    </style>
+    <div class="storm-name">
+      <h2>Tropical Cyclone [[_calculateStormName(storm.internationalName, storm.localName)]]</h2>
+    </div>
+    <div class="track-number">
+      <paper-input label="Tracking Number" value="{{track.index}}"></paper-input>
+    </div>
+    <div class="date-time">
+      <datetime-picker date="{{track.date}}" time="{{track.time}}" label="Current Date"></datetime-picker>
+    </div>
+    <div class="coordinates row-form">
+      <paper-input label="Current Latitude" type="number" min="-90" max="90" value="{{track.currLat}}">
+        <span suffix>deg</span>
+      </paper-input>
+      <paper-input label="Current Longitude" type="number" min="-180" max="180" value="{{track.currLng}}">
+        <span suffix>deg</span>
+      </paper-input>
+    </div>
+    <paper-input label="Wind Speed" type="number" value="{{track.windSpeed}}" min="0.0" step="0.1">
+      <div suffix>kph</div>
+    </paper-input>
+    <paper-input label="Gustiness" type="number" value="{{track.gustiness}}" min="0.0" step="0.1">
+      <div suffix>kph</div>
+    </paper-input>
+    <paper-input label="Radius of >130 kph" type="number" value="{{track.wRadius1}}" step="0.1" min="0.0">
+      <div suffix>km</div>
+    </paper-input>
+    <paper-input label="Radius of 100-130 kph" type="number" value="{{track.wRadius2}}" step="0.1" min="0.0">
+      <div suffix>km</div>
+    </paper-input>
+    <paper-input label="Radius of <100 kph" type="number" value="{{track.wRadius3}}" step="0.1" min="0.0">
+      <div suffix>km</div>
+    </paper-input>
+    <paper-input label="Maximum Sea Wave Height" type="number" value="{{track.maxSWHeight}}" min="0.0" step="0.1">
+      <div suffix>meters</div>
+    </paper-input>
+    <paper-input label="Forecast Movement" type="text" is="iron-input" value="{{track.forecastMovement}}"></paper-input>
+    <paper-input label="Moving Towards" type="text" is="iron-input" value="{{track.movingTowards}}"></paper-input>
+    <paper-input label="Minimum Pressure" type="number" value="{{track.minPressure}}" min="0" step="0.1">
+      <div suffix>hPa</div>
+    </paper-input>
+    <paper-input label="Maximum Time of Cone in Hours" type="number" value="{{track.maxTimeOfCone}}"></paper-input>
+  </template>
+  <script>
+    Polymer({
+      is: 'present-data-form',
+
+      _calculateStormName: function(intName, locName) {
+        if (!locName) {
+          return intName;
+        } else if (!intName) {
+          return locName;
+        } else {
+          return intName + ' (' + locName + ')';
+        }
+      }
+    });
+  </script>
+</dom-module>
