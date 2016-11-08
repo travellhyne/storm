@@ -4,6 +4,24 @@
 <dom-module id="track-editor-shared-style">
   <template>
     <style>
+      :host {
+        display: block;
+        padding: 5px 8px;
+        height: 100%;
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+        overflow-y: scroll;
+      }
+
+      .track-row {
+        display: block;
+        padding: 5px;
+        border: 2px solid black;
+        margin-bottom: 10px;
+        position: relative;
+      }
+
       .data-row {
         @apply(--layout-horizontal);
       }

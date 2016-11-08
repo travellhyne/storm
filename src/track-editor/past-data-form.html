@@ -1,0 +1,59 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="datetime-picker.html">
+<link rel="import" href="../utils/lodash-import.html">
+
+<link rel="import" href="shared-style.html">
+
+<dom-module id="past-data-form">
+  <template>
+    <style include="track-editor-shared-style"></style>
+    <template is="dom-repeat" items="{{pastData}}" as="past">
+      <div class="track-row">
+        <paper-icon-button class="close-btn" icon="close" on-tap="_removePast"></paper-icon-button>
+        <datetime-picker label="Date and time" date="{{past.date}}" time="{{past.time}}"></datetime-picker>
+        <div class="data-row">
+          <paper-input class="flex-input" label="Latitude" type="number" value="{{past.lat}}" max="90.0" min="-90.0"
+            step="0.1"></paper-input>
+          <paper-input class="flex-input" label="Longitude" type="number" value="{{past.lng}}" max="180.0" min="-180.0"
+            step="0.1"></paper-input>
+          <paper-input class="flex-input" label="Wind Speed" type="number" value="{{past.windspeed}}" min="0.0"
+            step="0.1">
+            <div suffix>kph</div>
+          </paper-input>
+        </div>
+      </div>
+    </template>
+    <div class="add-btn-row">
+      <paper-button raised on-tap="_addNewPast">
+        <iron-icon icon="add"></iron-icon>
+        <span>Add New Previous Track</span>
+      </paper-button>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'past-data-form',
+      properties: {
+        pastData: {
+          type: Array,
+          notify: true
+        }
+      },
+
+      _addNewPast: function() {
+        if(!_.isArray(this.pastData)) {
+          this.set('pastData', []);
+        }
+        this.push('pastData', {});
+      },
+
+      _removePast: function(e) {
+        this.splice('pastData', e.model.index, 1);
+      }
+    });
+  </script>
+</dom-module>

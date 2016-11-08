@@ -8,6 +8,7 @@
 
 <link rel="import" href="present-data-form.html">
 <link rel="import" href="forecast-data-form.html">
+<link rel="import" href="past-data-form.html">
 
 <dom-module id="track-editor">
   <template>
@@ -66,7 +67,9 @@
           <div class="forecast-data">
             <forecast-data-form forecast-data="{{track.forecastData}}"></forecast-data-form>
           </div>
-          <div class="past-data"></div>
+          <div class="past-data">
+            <past-data-form past-data="{{track.pastData}}"></past-data-form>
+          </div>
         </iron-pages>
       </div>
       <div class="main">

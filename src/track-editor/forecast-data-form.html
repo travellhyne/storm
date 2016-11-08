@@ -10,27 +10,9 @@
 
 <dom-module id="forecast-data-form">
   <template>
-    <style include="track-editor-shared-style">
-      :host {
-        display: block;
-        padding: 5px 8px;
-        height: 100%;
-        -webkit-box-sizing: border-box;
-        -moz-box-sizing: border-box;
-        box-sizing: border-box;
-        overflow-y: scroll;
-      }
-      
-      .forecast-track-row {
-        display: block;
-        padding: 5px;
-        border: 2px solid black;
-        margin-bottom: 10px;
-        position: relative;
-      }
-    </style>
+    <style include="track-editor-shared-style"></style>
     <template is="dom-repeat" items="{{forecastData}}" as="forecast">
-      <div class="forecast-track-row">
+      <div class="track-row">
         <paper-icon-button id="close-btn" icon="close" on-tap="_removeForecast">
         </paper-icon-button>
         <datetime-picker label="Forecast Date" date="{{forecast.date}}" time="{{forecast.time}}"></datetime-picker>
