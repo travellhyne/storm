@@ -1,0 +1,33 @@
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../bower_components/paper-styles/color.html">
+
+<dom-module id="track-editor-shared-style">
+  <template>
+    <style>
+      .data-row {
+        @apply(--layout-horizontal);
+      }
+      
+      .flex-input {
+        @apply(--layout-flex);
+      }
+      
+      .add-btn-row {
+        @apply(--layout-horizontal);
+        @apply(--layout-center-center);
+        padding: 5px 0;
+      }
+      
+      .add-btn-row paper-button {
+        background: var(--paper-red-500);
+        color: var(--paper-red-50);
+      }
+      
+      .switch {
+        height: 40px;
+        @apply(--layout-horizontal);
+        @apply(--layout-center);
+      }
+    </style>
+  </template>
+</dom-module>
