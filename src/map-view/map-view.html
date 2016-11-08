@@ -1,0 +1,222 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../utils/leaflet-import.html">
+<link rel="import" href="../utils/detect-element-resize.html">
+<link rel="import" href="../utils/d3-import.html">
+<link rel="import" href="../utils/math-utils.html">
+
+<dom-module id="map-view">
+  <template>
+    <style>
+      :host {
+        display: block;
+        height: 100%;
+        width: 100%;
+      }
+      
+      #mapContainer {
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+    <div id="mapContainer"></div>
+  </template>
+  <script>
+    (function() {
+      var PAR_COORDS = [
+        [120, 25],
+        [135, 25],
+        [135, 5],
+        [115, 5],
+        [115, 15],
+        [120, 21],
+        [120, 25]
+      ];
+
+      function drawWindCircle(params) {
+        var layer = params.layer;
+        var data = params.data;
+        var propName = params.propName;
+        var fillColor = params.fillColor;
+        var strokeColor = params.strokeColor;
+        var className = params.className;
+        var projection = params.projection;
+
+        layer.selectAll('.'+className)
+          .data(data).enter()
+          .append('circle')
+          .attr('cx', function(d) { return projection([d.lng, d.lat])[0]; })
+          .attr('cy', function(d) { return projection([d.lng, d.lat])[1]; })
+          .attr('r', function(d) {
+            return MathUtils.radiusToPixels([d.lng, d.lat], d[propName], projection)
+          })
+          .attr('fill', fillColor)
+          .attr('stroke-width', function(d) { return d[propName] > 0 ? '1.5px' : 0; })
+          .style('stroke', strokeColor)
+          .attr('class', className);
+      }
+
+      Polymer({
+        is: 'map-view',
+        properties: {
+          track: Object
+        },
+
+        observers: [
+          '_trackUpdated(track.*)'
+        ],
+
+        _trackUpdated: function() {
+          if (this.track && this.map) {
+            this._updateMap();
+          }
+        },
+        
+        attached: function() {
+          this.map = L.map(this.$.mapContainer).setView([14, 120], 6);
+          L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoidHJhdmVsbGh5bmUiLCJhIjoiQkFTdnQtSSJ9.iZRyvumNP3rOmiaC-9ojcQ', {
+            attribution: '&copy; <a href="https://www.mapbox.com/about/maps">Mapbox</a>, &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          }).addTo(this.map);
+
+          L.svg().addTo(this.map);
+          addResizeListener(this.$.mapContainer, function() {
+            this.map._onResize();
+          }.bind(this));
+          
+          this._initMap();
+          this.map.on('viewreset zoomend zoomlevelschange', function() {
+            this._updateMap();
+            console.log('view reset')
+          }.bind(this));
+        },
+
+        _initMap: function() {
+          var svg = d3.select(this.$.mapContainer).select('svg');
+          svg.style('z-index', 3);
+          svg.selectAll('g').remove();
+          svg.selectAll('defs').remove();
+          this.parLayer = svg.append('g');
+          this.windLayer = svg.append('g');
+          this.rainEllipseLayer = svg.append('g');
+          this.trackLayer = svg.append('g');
+          this.labelLineLayer = svg.append('g').attr('class', 'label-line-layer');
+          this.markerLayer = svg.append('g');
+          this.forecastTrackMarkers = [];
+          this.pastTrackMarkers = [];
+
+          this.windLayer.style('opacity', 0.3);
+
+          svg.append('svg:defs')
+            .append('svg:marker')
+              .attr('id', 'triangle_marker')
+              .attr('markerHeight', 5)
+              .attr('markerWidth', 5)
+              .attr('markerUnits', 'strokeWidth')
+              .attr('orient', 'auto')
+              .attr('refX', 0)
+              .attr('refY', 0)
+              .attr('viewBox', '-5 -5 10 10')
+              .append('svg:path')
+                .attr('d', 'M 0,0 m -5,-5 L 5,0 L -5,5 Z')
+                .attr('fill', '#00c0ff');
+          
+          this.projection = function(coord) {
+            var point = this.map.latLngToLayerPoint(new L.LatLng(coord[1], coord[0]));
+            return [point.x, point.y];
+          }.bind(this);
+
+          this.projection.invert = function(coord) {
+            var coord = this.map.layerPointToLatLng(new L.Point(point[0], point[1]));
+            return [coord.lng, coord.lat];
+          }.bind(this);
+
+          this._updateMap();
+        },
+
+        _updateMap: function() {
+          if (!this.track) {
+            return;
+          }
+          this._plotPAR();
+          this._drawWindCircles();
+        },
+
+        _plotPAR: function() {
+          var self = this;
+          var parLayer = this.parLayer;
+          parLayer.selectAll('polygon.par').remove();
+
+          var parPoints = PAR_COORDS.map(function(coord) {
+            return self.projection(coord);
+          });
+          parLayer.append('polygon')
+            .attr('class', 'par')
+            .attr('points', parPoints.join(' '))
+            .style('fill', 'none')
+            .style('stroke-width', 3)
+            .style('stroke', '#888')
+            .style('stroke-dasharray', '5, 3');
+        },
+
+        _drawWindCircles: function() {
+          var self = this;
+          var track = this.track;
+          var windLayer = this.windLayer;
+          windLayer.selectAll('.wind-radius1').remove();
+          windLayer.selectAll('.wind-radius2').remove();
+          windLayer.selectAll('.wind-radius3').remove();
+
+          var forecastArray = [];
+          if (_.isArray(track.forecastData) && !_.isEmpty(track.forecastData)) {
+            // include present data
+            forecastArray.push({
+              lat: _.toNumber(track.lat) || 0,
+              lng: _.toNumber(track.lng) || 0,
+              wRadius1: _.toNumber(track.wRadius1) || 0,
+              wRadius2: _.toNumber(track.wRadius2) || 0,
+              wRadius3: _.toNumber(track.wRadius3) || 0
+            });
+            track.forecastData.forEach(function(item) {
+              if (item.visible) {
+                forecastArray.push({
+                  lat: _.toNumber(item.lat) || 0,
+                  lng: _.toNumber(item.lng) || 0,
+                  wRadius1: _.toNumber(item.wRadius1) || 0,
+                  wRadius2: _.toNumber(item.wRadius2) || 0,
+                  wRadius3: _.toNumber(item.wRadius3) || 0
+                });
+              }
+            });
+          }
+          // draw the circles
+          drawWindCircle({
+            layer: windLayer,
+            data: forecastArray,
+            propName: 'wRadius3',
+            fillColor: '#71CFFC',
+            strokeColor: '#c0c0c0',
+            className: 'wind-radius3',
+            projection: this.projection
+          });
+          drawWindCircle({
+            layer: windLayer,
+            data: forecastArray,
+            propName: 'wRadius2',
+            fillColor: '#EFBAC3',
+            strokeColor: '#000',
+            className: 'wind-radius2',
+            projection: this.projection
+          });
+          drawWindCircle({
+            layer: windLayer,
+            data: forecastArray,
+            propName: 'wRadius1',
+            fillColor: '#F58486',
+            strokeColor: '#000',
+            className: 'wind-radius1',
+            projection: this.projection
+          });
+        },
+      });
+    })();
+  </script>
+</dom-module>

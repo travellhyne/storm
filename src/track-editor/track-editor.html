@@ -9,6 +9,7 @@
 <link rel="import" href="present-data-form.html">
 <link rel="import" href="forecast-data-form.html">
 <link rel="import" href="past-data-form.html">
+<link rel="import" href="../map-view/map-view.html">
 
 <dom-module id="track-editor">
   <template>
@@ -73,7 +74,7 @@
         </iron-pages>
       </div>
       <div class="main">
-        
+        <map-view track="{{track}}"></map-view>
       </div>
     </div>
   </template>
