@@ -1,8 +1,11 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-a11y-keys/iron-a11y-keys.html">
 <link rel="import" href="../utils/leaflet-import.html">
 <link rel="import" href="../utils/detect-element-resize.html">
 <link rel="import" href="../utils/d3-import.html">
 <link rel="import" href="../utils/math-utils.html">
+<link rel="import" href="../utils/leaflet-utils.html">
+<link rel="import" href="../utils/fabric-import.html">
 
 <dom-module id="map-view">
   <template>
@@ -11,14 +14,39 @@
         display: block;
         height: 100%;
         width: 100%;
+        position: relative;
+      }
+
+      :host(.fullscreen) {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        z-index: 100;
       }
       
       #mapContainer {
         height: 100%;
         width: 100%;
+        z-index: 1;
+      }
+
+      #ccontainer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
       }
     </style>
     <div id="mapContainer"></div>
+    <div id="ccontainer">
+      <canvas id="rainAreaCanvas"></canvas>
+    </div>
+    <iron-a11y-keys target="[[target]]" keys="esc" on-keys-pressed="onEscape"></iron-a11y-keys>
   </template>
   <script>
     (function() {
@@ -31,6 +59,56 @@
         [120, 21],
         [120, 25]
       ];
+
+      var ICONS = [
+        // icon for tropical depression
+        'm165.03975,34.96026c-36.38849,-36.38849 -95.38589,-36.38848 -131.77435,-0.00002c-36.38847,36.38847 -36.38851,95.38592 -0.00003,131.77439c36.38849,36.38849 95.38594,36.38844 131.77439,-0.00002c36.38847,-36.38847 36.38847,-95.38587 -0.00002,-131.77436zm-24.75073,8.68069l-41.13645,41.13644l-41.13644,-41.13644c24.49649,-17.66302 57.77636,-17.66301 82.27289,0zm16.07004,16.07004c17.66302,24.49654 17.66302,57.77639 0.00002,82.2729l-41.13646,-41.13645l41.13644,-41.13645zm-114.41299,0.00002l41.13644,41.13645l-41.13645,41.13644c-17.663,-24.49653 -17.66301,-57.77639 0,-82.27289zm57.20648,57.20649l41.13646,41.13646c-24.4965,17.66301 -57.77636,17.66301 -82.2729,-0.00002l41.13644,-41.13644z',
+        // icon for tropical storm
+        'M 117.78125,0 C 79.664641,12.1611 53.13859,54.433252 50,100.40625 C 50,126.50005 72.403904,147.75 100,147.75 C 109.06358,147.74999 117.57302,145.46205 124.90625,141.46875 C 115.87763,168.86464 100.88309,190.8807 82,200 C 119.50838,188.033 146.18797,145.44705 150,100.46875 C 150,74.374951 127.5961,53.1875 100,53.1875 C 90.817239,53.187498 82.208283,55.5337 74.8125,59.625 C 83.807421,31.8014 98.699519,9.2153 117.78125,0 z M 99.15625,65.4375 C 114.78187,65.295295 129.12456,75.710403 133.34375,91.5 C 138.34426,110.21359 127.21359,129.43698 108.5,134.4375 C 89.786398,139.43802 70.56302,128.30735 65.5625,109.59375 C 60.578125,90.94056 71.591077,71.766399 90.21875,66.6875 L 90.40625,66.65625 C 93.33025,65.874919 96.262617,65.463834 99.15625,65.4375 z ',
+        // icon for typhoon
+        'M 117.78125,0 C 79.664641,12.1611 53.13859,54.433252 50,100.40625 c 0,26.0938 22.403904,47.34375 50,47.34375 9.06358,-1e-5 17.57302,-2.28795 24.90625,-6.28125 C 115.87763,168.86464 100.88309,190.8807 82,200 119.50838,188.033 146.18797,145.44705 150,100.46875 150,74.374951 127.5961,53.1875 100,53.1875 90.817239,53.187498 82.208283,55.5337 74.8125,59.625 83.807421,31.8014 98.699519,9.2153 117.78125,0 Z',
+        // icon for low
+        'M161.279,119.727l-4.98,46.484H38.721v-3.613h4.395c3.841,0,6.934-0.684,9.277-2.051c1.692-0.91,2.994-2.473,3.906-4.688c0.716-1.562,1.074-5.664,1.074-12.305V56.445c0-6.771-0.358-11.001-1.074-12.695c-0.717-1.692-2.165-3.174-4.346-4.443c-2.182-1.27-5.127-1.904-8.838-1.904h-4.395v-3.613h70.605v3.613h-5.762c-3.842,0-6.934,0.684-9.278,2.051c-1.693,0.913-3.027,2.476-4.004,4.688c-0.717,1.562-1.074,5.664-1.074,12.305v84.375c0,6.773,0.391,11.084,1.172,12.939s2.311,3.24,4.59,4.15c1.627,0.586,5.566,0.879,11.817,0.879h11.035c7.031,0,12.891-1.234,17.578-3.711c4.688-2.473,8.74-6.379,12.158-11.719c3.418-5.336,6.656-13.215,9.717-23.633H161.279z'
+      ];
+
+      function selectTCIcon(windspeed) {
+        var windspeed = _.toNumber(windspeed) || 0;
+
+        if (windspeed < 37) {
+          return ICONS[3];
+        } else if (windspeed <= 61 && windspeed >= 37) {
+          return ICONS[0];
+        } else if (windspeed > 61 && windspeed <= 117) {
+          return ICONS[1];
+        } else if (windspeed > 117) {
+          return ICONS[2];
+        }
+      }
+
+      function drawMarker(data, layer, projection, className, color) {
+        layer.selectAll('.' + className)
+          .data(data).enter()
+          .append('path')
+          .attr('d', function(d) {
+            if (!_.isUndefined(d.windspeed)) {
+              return selectTCIcon(d.windspeed);              
+            }
+          })
+          .attr('transform', function(d) {
+            var projCoords = projection([_.toNumber(d.lng) || 0, _.toNumber(d.lat) || 0]);
+            var windspeed = _.toNumber(d.windspeed) || 0;
+            var bbox = this.getBBox();
+            var scale = 0.12;
+
+            if (windspeed <= 61 && windspeed >= 37) {
+              scale = 0.07;
+              return 'translate(' + (projCoords[0] - (bbox.width * scale / 2)) + ', ' + (projCoords[1] - (bbox.height * scale / 2)) + '), scale(' + scale +')';
+            }
+            return 'translate(' + (projCoords[0] - (bbox.width * scale)) + ', ' + (projCoords[1] - (bbox.height * scale / 2)) + '), scale(' + scale +')';
+          })
+          .attr('class', className)
+          .attr('fill', color);
+      }
 
       function drawWindCircle(params) {
         var layer = params.layer;
@@ -58,7 +136,28 @@
       Polymer({
         is: 'map-view',
         properties: {
-          track: Object
+          track: {
+            type: Object,
+            notify: true
+          },
+
+          drawRainArea: {
+            type: Boolean,
+            observer: '_drawRainArea',
+          },
+
+          fullscreen: {
+            type: Boolean,
+            observer: '_enterFullscreen',
+            notify: true
+          },
+
+          target: {
+            type: Object,
+            value: function() {
+              return this.$.mapContainer;
+            }
+          }
         },
 
         observers: [
@@ -68,11 +167,24 @@
         _trackUpdated: function() {
           if (this.track && this.map) {
             this._updateMap();
+            this._drawProbabilityCone();
           }
+        },
+
+        _enterFullscreen: function(nv) {
+          if (nv) {
+            this.classList.add('fullscreen');
+          } else {
+            this.classList.remove('fullscreen');
+          }
+        },
+
+        onEscape: function() {
+          this.fullscreen = false;
         },
         
         attached: function() {
-          this.map = L.map(this.$.mapContainer).setView([14, 120], 6);
+          this.map = L.map(this.$.mapContainer, {minZoom: 4, maxZoom: 7}).setView([14, 120], 6);
           L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoidHJhdmVsbGh5bmUiLCJhIjoiQkFTdnQtSSJ9.iZRyvumNP3rOmiaC-9ojcQ', {
             attribution: '&copy; <a href="https://www.mapbox.com/about/maps">Mapbox</a>, &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           }).addTo(this.map);
@@ -81,12 +193,81 @@
           addResizeListener(this.$.mapContainer, function() {
             this.map._onResize();
           }.bind(this));
+
+          this.currentZoom = this.map.getZoom();
           
           this._initMap();
           this.map.on('viewreset zoomend zoomlevelschange', function() {
+            this.currentZoom = this.map.getZoom();
             this._updateMap();
-            console.log('view reset')
           }.bind(this));
+        },
+
+        _drawRainArea: function(nv, ov) {
+          var self = this;
+          if (nv === true) {
+            this.$.ccontainer.style.zIndex = 10;
+            this.$.rainAreaCanvas.width = this.$.mapContainer.offsetWidth;
+            this.$.rainAreaCanvas.height = this.$.mapContainer.offsetHeight;
+            if (!this.fabricCanvas) {
+              this.fabricCanvas = new fabric.Canvas(this.$.rainAreaCanvas);     
+              this.fabricCanvas.on('object:modified', function(e) {
+                var target = e.target;
+                var newCoord = self.map.containerPointToLatLng([target.left, target.top]);
+                var newXCoord = self.map.containerPointToLatLng([target.left + target.rx * target.scaleX, target.top]);
+                var newYCoord = self.map.containerPointToLatLng([target.left, target.top + target.ry * target.scaleY])
+                var newRadiusX = MathUtils.getGeographicalDistance([newCoord.lng, newCoord.lat], [newXCoord.lng, newXCoord.lat]);
+                var newRadiusY = MathUtils.getGeographicalDistance([newCoord.lng, newCoord.lat], [newYCoord.lng, newYCoord.lat]);
+                
+                self.set('track.rainData', {
+                  lat: newCoord.lat,
+                  lng: newCoord.lng,
+                  radiusX: newRadiusX,
+                  radiusY: newRadiusY,
+                  rotation: target.angle
+                });
+
+              });         
+            }
+
+            if (!this.track.rainData) {
+              console.log('setting rain data');
+              this.set('track.rainData', {
+                lat: _.toNumber(this.track.lat) || 0,
+                lng: _.toNumber(this.track.lng) || 0,
+                radiusX: 100,
+                radiusY: 100,
+                rotation: 0
+              });
+            }
+            var rainData = this.track.rainData;
+            var layerPoint = this.map.latLngToContainerPoint(L.latLng(rainData.lat, rainData.lng));
+            var heightInPixels = MathUtils.radiusToPixels([rainData.lng, rainData.lat], rainData.radiusY, this.projection);
+            var widthInPixels = MathUtils.radiusToPixels([rainData.lng, rainData.lat], rainData.radiusX, this.projection);
+
+            if (this.fabricRainEllipse) {
+              this.fabricCanvas.remove(this.fabricRainEllipse);
+            }
+            
+            this.fabricRainEllipse = new fabric.Ellipse({
+              originX: 'center',
+              originY: 'center',
+              left: layerPoint.x,
+              top: layerPoint.y,
+              ry:  heightInPixels,
+              rx: widthInPixels,
+              fill: 'rgba(0, 0, 0, 0)',
+              stroke: '#fff',
+              strokeWidth: 3,
+              strokeDashArray: [5, 3],
+              angle: rainData.rotation
+            });
+            
+            this.fabricCanvas.add(this.fabricRainEllipse);
+            
+          } else {
+            if (this.$.ccontainer) this.$.ccontainer.style.zIndex = 0;
+          }
         },
 
         _initMap: function() {
@@ -107,27 +288,17 @@
 
           svg.append('svg:defs')
             .append('svg:marker')
-              .attr('id', 'triangle_marker')
-              .attr('markerHeight', 5)
-              .attr('markerWidth', 5)
-              .attr('markerUnits', 'strokeWidth')
-              .attr('orient', 'auto')
-              .attr('refX', 0)
-              .attr('refY', 0)
-              .attr('viewBox', '-5 -5 10 10')
-              .append('svg:path')
-                .attr('d', 'M 0,0 m -5,-5 L 5,0 L -5,5 Z')
-                .attr('fill', '#00c0ff');
-          
-          this.projection = function(coord) {
-            var point = this.map.latLngToLayerPoint(new L.LatLng(coord[1], coord[0]));
-            return [point.x, point.y];
-          }.bind(this);
-
-          this.projection.invert = function(coord) {
-            var coord = this.map.layerPointToLatLng(new L.Point(point[0], point[1]));
-            return [coord.lng, coord.lat];
-          }.bind(this);
+            .attr('id', 'triangle_marker')
+            .attr('markerHeight', 5)
+            .attr('markerWidth', 5)
+            .attr('markerUnits', 'strokeWidth')
+            .attr('orient', 'auto')
+            .attr('refX', 0)
+            .attr('refY', 0)
+            .attr('viewBox', '-5 -5 10 10')
+            .append('svg:path')
+            .attr('d', 'M 0,0 m -5,-5 L 5,0 L -5,5 Z')
+            .attr('fill', '#00c0ff');
 
           this._updateMap();
         },
@@ -136,8 +307,34 @@
           if (!this.track) {
             return;
           }
+
+          this.projection = function(coord) {
+            var point = this.map.latLngToLayerPoint(new L.LatLng(coord[1], coord[0]));
+            return [point.x, point.y];
+          }.bind(this);
+
+          this.projection.invert = function(point) {
+            var coord = this.map.layerPointToLatLng(new L.Point(point[0], point[1]));
+            return [coord.lng, coord.lat];
+          }.bind(this);
+
+          this.pathLine = d3.line()
+            .x(function(d) {
+              return this.projection(d)[0];
+            }.bind(this))
+            .y(function(d) {
+              return this.projection(d)[1];
+            }.bind(this)).curve(d3.curveCatmullRom);
+          
           this._plotPAR();
           this._drawWindCircles();
+          this._plotForecastTrack();
+          this._plotPastTrack();
+          this._drawTCMarkers();
+          this._plotPresentLabel();
+          this._plotForecastLabels();
+          this._plotPastLabels();
+          this._plotRainArea();
         },
 
         _plotPAR: function() {
@@ -155,6 +352,150 @@
             .style('stroke-width', 3)
             .style('stroke', '#888')
             .style('stroke-dasharray', '5, 3');
+        },
+
+        _drawProbabilityCone: function() {
+          var self = this;
+          if (this.canvasOverlay) {
+            this.map.removeLayer(this.canvasOverlay);
+          }
+          this.canvasOverlay = new L.CanvasOverlay()
+            .drawing(function(canvasOverlay, params) {
+              params.canvas.style.opacity = '0.5';
+              params.canvas.style.zIndex = '0';
+              var ctx = params.canvas.getContext('2d');
+              var forecastTrackCoords = [];
+              ctx.clearRect(0, 0, params.canvas.width, params.canvas.height);
+              ctx.fillStyle = 'rgb(254, 228, 182)';
+              ctx.strokeStyle = '#000';
+              if (_.isArray(self.track.forecastData) && !_.isEmpty(self.track.forecastData)) {
+
+                var maxTime = _.toNumber(self.track.maxTimeOfCone) || 72;
+
+                forecastTrackCoords.push([
+                  _.toNumber(self.track.lng) || 0,
+                  _.toNumber(self.track.lat) || 0,
+                  true, // visible on map
+                  moment(self.track.date + '-' + self.track.time, 'YYYY-MM-DD-HH') // datetime
+                ]);
+                self.track.forecastData.forEach(function(d) {
+                  forecastTrackCoords.push([
+                    _.toNumber(d.lng) || 0,
+                    _.toNumber(d.lat) || 0,
+                    d.visible,
+                    moment(d.date + '-' + d.time, 'YYYY-MM-DD-HH')
+                  ]);
+                });
+
+                var totalPathLength = self.trackLine.getTotalLength();
+                var lengthRatios = MathUtils.getLengthRatios(forecastTrackCoords.map(function (d) {
+                  var point = canvasOverlay._map.latLngToLayerPoint([d[1], d[0]]);
+                  return [point.x, point.y];
+                }));
+                var pathPointDistances = lengthRatios.map(function(d) {
+                  return d * totalPathLength;
+                });
+                var timeDiffs = MathUtils.getTimeDifferences(forecastTrackCoords.map(function(d) {
+                  return d[3];
+                }));
+
+                var distanceTravelled;
+                var timePast;
+                var growthRate = 3.75; // radius in km per hour
+                var limit = 200;
+                ctx.fillStyle = '#000';
+
+                // reset
+                distanceTravelled = 0;
+                timePast = 0;
+                ctx.fillStyle = '#000';
+
+                forecastTrackCoords.forEach(function(d, index) {
+                  if (index === forecastTrackCoords.length - 1) { return; }
+
+                  var currDistance = 0;
+                  var endDistance = pathPointDistances[index];
+                  var currTime = 0;
+                  var endTime = timeDiffs[index];
+
+                  var i = 0;
+                  function customProjection(coord) {
+                    var point = canvasOverlay._map.latLngToContainerPoint(new L.LatLng(coord[1], coord[0]));
+                    return [point.x, point.y];
+                  }
+
+                  for (i = 0; i <= limit; i++) {
+                    currDistance = i * (endDistance / limit) + distanceTravelled;
+                    currTime = (endTime / limit) * i + timePast;
+
+                    if (currTime > maxTime && self.track.drawBeyond3Days) {
+                      continue;
+                    }
+
+                    var radiusInKm = currTime * growthRate;
+                    var svgPoint = self.trackLine.getPointAtLength(currDistance);
+                    var canvasPoint = canvasOverlay._map.layerPointToContainerPoint(new L.Point(svgPoint.x || 0, svgPoint.y || 0));
+                    var coord = self.projection.invert([svgPoint.x || 0, svgPoint.y || 0]);
+                    var radiusInPixels = MathUtils.radiusToPixels(coord, radiusInKm, customProjection);
+                    ctx.beginPath();
+                    ctx.arc(canvasPoint.x, canvasPoint.y, radiusInPixels + 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.closePath();
+                  }
+
+
+                  distanceTravelled = currDistance;
+                  timePast = currTime;
+                });
+
+
+                // go from biggest to smallest (with stroke)
+                distanceTravelled = MathUtils.getArraySum(pathPointDistances);
+                timePast = MathUtils.getArraySum(timeDiffs);
+
+                forecastTrackCoords.reverse(); // reverse Array
+                timeDiffs.reverse();
+                pathPointDistances.reverse();
+
+                forecastTrackCoords.forEach(function(d, index) {
+                  if (index === 0) { return; }
+                  ctx.fillStyle = 'rgb(182, 228, 254)';
+                  var currDistance = 0;
+                  var endDistance = pathPointDistances[index - 1];
+                  var currTime = 0;
+                  var endTime = timeDiffs[index - 1];
+
+                  var i = 0;
+                  for (i = 0; i < limit; i++) {
+                    currDistance = distanceTravelled - i * (endDistance / limit);
+                    currTime = timePast - (endTime / limit) * i;
+                    if (currTime > maxTime && self.track.drawBeyond3Days) {
+                      continue;
+                    }
+                    if (currTime <= maxTime) {
+                      ctx.fillStyle = 'rgb(254, 228, 182)';
+                    }
+
+                    var radiusInKm = currTime * growthRate;
+                    var svgPoint = self.trackLine.getPointAtLength(currDistance);
+                    var coord = self.projection.invert([svgPoint.x, svgPoint.y]);
+                    var canvasPoint = canvasOverlay._map.latLngToContainerPoint([coord[1], coord[0]]);
+                    var radiusInPixels = MathUtils.radiusToPixels(coord, radiusInKm, self.projection);
+
+                    ctx.beginPath();
+                    ctx.arc(canvasPoint.x, canvasPoint.y, radiusInPixels, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.closePath();
+
+                  }
+                  distanceTravelled = currDistance;
+                  timePast = currTime;
+                });
+              }
+            });
+
+            this.map.addLayer(this.canvasOverlay);
+          
         },
 
         _drawWindCircles: function() {
@@ -216,6 +557,403 @@
             projection: this.projection
           });
         },
+        _plotPastTrack: function() {
+          var self = this;
+          var trackLayer = this.trackLayer;
+
+          trackLayer.selectAll('.past-track').remove();
+
+          var pastCoords = [];
+
+          if (_.isArray(this.track.pastData) && !_.isEmpty(this.track.pastData)) {
+            this.track.pastData.forEach(function(d) {
+              var coord = [_.toNumber(d.lng) || 0, _.toNumber(d.lat) || 0];
+              pastCoords.push(coord);
+            });
+            pastCoords.push([_.toNumber(this.track.lng) || 0, _.toNumber(this.track.lat) || 0]);
+
+            trackLayer.append('path')
+              .attr('d', this.pathLine(pastCoords))
+              .attr('class', 'past-track')
+              .style('fill', 'none')
+              .style('stroke-width', '3.5px')
+              .style('stroke', '#fff');
+          }
+        },
+        _plotForecastTrack: function() {
+          var self = this;
+          var trackLayer = this.trackLayer;
+
+          trackLayer.selectAll('.forecast-track').remove();
+
+          var forecastCoords = [];
+
+          if (_.isArray(this.track.forecastData) && !_.isEmpty(this.track.forecastData)) {
+            forecastCoords.push([_.toNumber(this.track.lng) || 0, _.toNumber(this.track.lat) || 0]);
+
+            this.track.forecastData.forEach(function(d) {
+              forecastCoords.push([_.toNumber(d.lng) || 0, _.toNumber(d.lat) || 0]);
+            });
+
+            if (this.track.noArrow) {
+              trackLayer.append('path')
+              .attr('d', this.pathLine(forecastCoords))
+              .attr('class', 'forecast-track')
+              .style('fill', 'none')
+              .style('stroke-width', '3.5px')
+              .style('stroke', '#00c0ff');
+            } else {
+              trackLayer.append('path')
+              .attr('d', this.pathLine(forecastCoords))
+              .attr('class', 'forecast-track')
+              .attr('marker-end', 'url(#triangle_marker)')
+              .style('fill', 'none')
+              .style('stroke-width', '3.5px')
+              .style('stroke', '#00c0ff');
+            }
+            
+          }
+          this.trackLine = trackLayer.select('path.forecast-track').node();
+        },
+
+        _drawTCMarkers: function() {
+          var self = this;
+          
+          var markerLayer = this.markerLayer;
+          markerLayer.selectAll('.past-tc-marker').remove();
+          markerLayer.selectAll('.forecast-tc-marker').remove();
+          markerLayer.selectAll('.present-tc-marker').remove();
+          markerLayer.selectAll('.green-circle').remove();
+
+          // draw past markers
+          if (_.isArray(this.track.pastData) && !_.isEmpty(this.track.pastData)) {
+            drawMarker(this.track.pastData, markerLayer, this.projection, 'past-tc-marker', '#f00');
+          }
+
+          // draw present marker
+          // first draw green circle
+          var presentPoint = this.projection([_.toNumber(this.track.lng) || 0, _.toNumber(this.track.lat) || 0]);
+
+          markerLayer.append('circle')
+            .attr('class', 'green-circle')
+            .attr('cx', presentPoint[0])
+            .attr('cy', presentPoint[1])
+            .attr('r', 15)
+            .attr('fill', '#0f0');
+          
+          drawMarker([this.track], markerLayer, this.projection, 'present-tc-marker', '#ff0102');
+
+          // draw forecast markers
+          if (_.isArray(this.track.forecastData) && !_.isEmpty(this.track.forecastData)) {
+            var forecastData = _.filter(this.track.forecastData, {visible: true});
+            drawMarker(forecastData, markerLayer, this.projection, 'forecast-tc-marker', '#ff0102');
+          }
+        },
+
+        _plotPresentLabel: function() {
+          var self = this;
+
+          var coord = [_.toNumber(this.track.lng) || 0, _.toNumber(this.track.lat) || 0];
+          if (!_.has(this.track, 'labelCoord')) {
+            this.track.labelCoord = {lng: coord[0] + 5, lat: coord[1] + 5};
+          }
+
+          var labelCoord = this.track.labelCoord;
+          var date = moment(this.track.date + '-' + this.track.time, 'YYYY-MM-DD-HH');
+          var windspeed = _.toNumber(this.track.windspeed) || 0;
+          var gustiness = _.toNumber(this.track.gustiness) || 0;
+          var speedText = '[Current Winds: ' + windspeed + ' - ' + gustiness + ' kph]';
+          var html = 
+            '<div style="text-align: center; font-weight: 700; height: 100%; width: 100%; border: 1px solid #fff;">' +
+              '<div class="date" style="font-size: 24px; color: #fff;">'+
+              date.format('h A ddd MMM DD') +
+              '</div>' +
+              '<div class="speed" style="font-size: 12px; color: #ffd800">' +
+              speedText +
+              '</div>' +
+            '</div>';
+          
+          var map = this.map;
+
+          if (this.presentMarkerLine) {
+            map.removeLayer(this.presentMarkerLine);
+          }
+
+          if (this.presentMarker) {
+            map.removeLayer(this.presentMarker);
+          }
+
+          var presentDivIcon = L.divIcon({
+            iconSize: new L.Point(240, 60),
+            className: 'present-marker-label',
+            html: html
+          });
+
+          this.presentMarker = L.marker(
+            new L.LatLng(_.toNumber(labelCoord.lat) || 0, _.toNumber(labelCoord.lng) || 0),
+            {
+              icon: presentDivIcon,
+              draggable: true
+            }).addTo(map);
+          
+          this.presentMarker.on('dragend', function(e) {
+            var latLng = e.target.getLatLng();
+            self.set('track.labelCoord', {
+              lng: latLng.lng,
+              lat: latLng.lat
+            });
+
+            self._plotPresentLabelLine();
+          });
+
+          this._plotPresentLabelLine()
+        },
+
+        _plotForecastLabels: function() {
+          var self = this;
+          var map = this.map;
+
+          if (_.isArray(this.forecastMarkers) && !_.isEmpty(this.forecastMarkers)) {
+            this.forecastMarkers.forEach(function(d) {
+              map.removeLayer(d);
+            });
+          }
+
+          this.set('forecastMarkers', []);
+
+          _.each(this.track.forecastData, function(d, index) {
+            if (!d.visible) {
+              return;
+            }
+
+            if (!_.has(d, 'labelCoord')) {
+              d.labelCoord = {
+                lng: _.toNumber(d.lng) || 0,
+                lat: _.toNumber(d.lat) || 0
+              }
+            }
+
+            var labelCoord = d.labelCoord;
+            var date = moment(d.date + '-' + d.time, 'YYYY-MM-DD-HH').subtract(3, 'hours');
+            var windspeed = _.toNumber(d.windspeed) || 0;
+            var gustiness = _.toNumber(d.gustiness) || 0;
+            var speedText = '[Forecast Winds: ' + windspeed + ' - ' + gustiness + ' kph]';
+            var html = 
+              '<div style="text-align: center; font-weight: 700; height: 100%; width: 100%;">' +
+                '<div class="date" style="font-size: ' + self.currentZoom * 4 + 'px; color: #00c0ff; line-height: 24px;">' +
+                  date.format('h A ddd MMM DD') +
+                '</div>' +
+                '<div class="speed" style="font-size: ' + self.currentZoom * 2 + 'px; color: #d6d6d6">' +
+                  speedText +
+                '</div>' +
+              '</div>';
+            var iconWidth = self.currentZoom * (220 / 6);
+            var iconHeight = self.currentZoom * 10;
+
+            var forecastIcon = L.divIcon({
+              iconSize: L.point(240 + (self.currentZoom - 5) * 10, 60),
+              className: 'forecast-marker-label',
+              html: html
+            });
+
+            var forecastMarker = L.marker(L.latLng(labelCoord.lat, labelCoord.lng), {
+              icon: forecastIcon,
+              draggable: true
+            }).addTo(map);
+
+            forecastMarker.on('dragend', function(e) {
+              var latLng = e.target.getLatLng();
+              self.set('track.forecastData.' + index + '.labelCoord', {lng: latLng.lng, lat: latLng.lat});
+              self._plotForecastLabelLines();
+            });
+
+            self.forecastMarkers.push(forecastMarker);
+          });
+          this._plotForecastLabelLines();
+        },
+        _plotPastLabels: function() {
+          var self = this;
+          var map = this.map;
+          if (!this.track.pastData || _.isEmpty(this.track.pastData)) { return ;}
+          if (!this.pastMarkers || !_.isEmpty(this.pastMarkers)) {
+            _.each(this.pastMarkers, function(d) {
+              map.removeLayer(d);
+            });
+          }
+
+          this.pastMarkers = [];
+
+          _.each(this.track.pastData, function(d, index) {
+            var date = moment(d.date + '-' + d.time, 'YYYY-MM-DD-HH');
+            if (!_.has(d, 'labelCoord')) {
+              d.labelCoord = {
+                lng: (_.toNumber(d.lng) || 0) + 1,
+                lat: (_.toNumber(d.lat) || 0) + 1
+              };
+            }
+            var labelCoord = d.labelCoord;
+            var html = 
+              '<div style="text-align: center; font-weight: 700; height: 100%; width: 100%;">' +
+                '<div class="date" style="font-size: 12px; color: #fff">' +
+                  date.format('h A MMM DD') +
+                '</div></div>';
+            var pastIcon = L.divIcon({
+              iconSize: L.point(120, 20),
+              className: 'past-marker-label',
+              html: html
+            })
+
+            var pastMarker = L.marker(L.latLng(labelCoord.lat, labelCoord.lng), {
+              icon: pastIcon,
+              draggable: true
+            }).addTo(map);
+
+            pastMarker.on('dragend', function(e) {
+              var latLng = e.target.getLatLng();
+              self.set('track.pastData.' + index + '.labelCoord', {lng: latLng.lng, lat: latLng.lat});
+              self._plotPastLabelLines();
+            });
+
+            self.pastMarkers.push(pastMarker);
+          });
+          this._plotPastLabelLines();
+        },
+
+        _plotPresentLabelLine: function() {
+          var self = this;
+          var labelLineLayer = this.labelLineLayer;
+          labelLineLayer.selectAll('.present-label-line').remove();
+
+          var coord = [_.toNumber(this.track.lng) || 0, _.toNumber(this.track.lat) || 0];
+          var labelCoord = this.track.labelCoord;
+          var labelPoint = this.projection([labelCoord.lng, labelCoord.lat]);
+          var point = this.projection(coord);
+          var labelWidth = (_.has(this.presentMarker, '_icon')) ? this.presentMarker._icon.offsetWidth : 0;
+
+          // determine left coordinates of label
+          var labelLeftCoord = (_.has(this.presentMarker, '_icon')) ? this.projection.invert([labelPoint[0] - Math.round(labelWidth/2), labelPoint[1]]) : labelCoord;
+
+          // determine right coordinates of label
+          var labelRightCoord = (_.has(this.presentMarker, '_icon')) ? this.projection.invert([labelPoint[0] + Math.round(labelWidth/2), labelPoint[1]]) : labelCoord;
+
+          var labelLineEndCoord = (labelPoint[0] >= point[0]) ? labelLeftCoord : labelRightCoord;
+
+          var pathLine = d3.line()
+            .x(function(d) {
+              return self.projection(d)[0];
+            })
+            .y(function(d) {
+              return self.projection(d)[1];
+            });
+          
+          labelLineLayer.append('path')
+            .attr('d', pathLine([coord, labelLineEndCoord]))
+            .attr('class', 'present-label-line')
+            .attr('stroke', '#fff')
+            .attr('strokeWidth', '1.5px');
+        },
+
+        _plotForecastLabelLines: function() {
+          var self = this;
+          var labelLineLayer = this.labelLineLayer;
+          labelLineLayer.selectAll('.forecast-label-line').remove();
+          if (_.isEmpty(this.track.forecastData)) { return; }
+
+          var forecastData = _.filter(this.track.forecastData, {visible: true}); 
+          
+          _.each(forecastData, function(d, index) {
+            var forecastMarker = self.forecastMarkers[index];
+            var coord = [_.toNumber(d.lng) || 0, _.toNumber(d.lat) || 0];
+            var labelCoord = d.labelCoord;
+            var labelPoint = self.projection([labelCoord.lng, labelCoord.lat]);
+            var point = self.projection(coord);
+            var labelWidth = (_.has(forecastMarker, '_icon')) ? forecastMarker._icon.offsetWidth : 0;
+
+            // determine left coordinates of label
+            var labelLeftCoord = (_.has(forecastMarker, '_icon')) ? self.projection.invert([labelPoint[0] - Math.round(labelWidth/2), labelPoint[1]]) : labelCoord;
+
+            // determine right coordinates of label
+            var labelRightCoord = (_.has(forecastMarker, '_icon')) ? self.projection.invert([labelPoint[0] + Math.round(labelWidth/2), labelPoint[1]]) : labelCoord;
+
+            var labelLineEndCoord = (labelPoint[0] >= point[0]) ? labelLeftCoord : labelRightCoord;
+
+            var pathLine = d3.line()
+              .x(function(d) {
+                return self.projection(d)[0];
+              })
+              .y(function(d) {
+                return self.projection(d)[1];
+              });
+            
+            labelLineLayer.append('path')
+              .attr('d', pathLine([coord, labelLineEndCoord]))
+              .attr('class', 'forecast-label-line')
+              .attr('stroke', '#fff')
+              .attr('strokeWidth', '1.5px');
+          });
+        },
+
+        _plotPastLabelLines: function() {
+          var self = this;
+          var labelLineLayer = this.labelLineLayer;
+          labelLineLayer.selectAll('.past-label-line').remove();
+          if (_.isEmpty(this.track.pastData)) { return; }
+
+          _.each(this.track.pastData, function(d, index) {
+            var pastMarker = self.pastMarkers[index];
+            var coord = [_.toNumber(d.lng) || 0, _.toNumber(d.lat) || 0];
+            var labelCoord = d.labelCoord;
+            var labelPoint = self.projection([labelCoord.lng, labelCoord.lat]);
+            var point = self.projection(coord);
+            var labelWidth = (_.has(pastMarker, '_icon')) ? pastMarker._icon.offsetWidth : 0;
+
+            // determine left coordinates of label
+            var labelLeftCoord = (_.has(pastMarker, '_icon')) ? self.projection.invert([labelPoint[0] - Math.round(labelWidth/2), labelPoint[1]]) : labelCoord;
+
+            // determine right coordinates of label
+            var labelRightCoord = (_.has(pastMarker, '_icon')) ? self.projection.invert([labelPoint[0] + Math.round(labelWidth/2), labelPoint[1]]) : labelCoord;
+
+            var labelLineEndCoord = (labelPoint[0] >= point[0]) ? labelLeftCoord : labelRightCoord;
+
+            var pathLine = d3.line()
+              .x(function(d) {
+                return self.projection(d)[0];
+              })
+              .y(function(d) {
+                return self.projection(d)[1];
+              });
+            
+            labelLineLayer.append('path')
+              .attr('d', pathLine([coord, labelLineEndCoord]))
+              .attr('class', 'past-label-line')
+              .attr('stroke', '#fff')
+              .attr('strokeWidth', '1.5px');
+          });
+        },
+
+        _plotRainArea: function() {
+          if (this.track.rainData) {
+            var rainEllipseLayer = this.rainEllipseLayer;
+            rainEllipseLayer.selectAll('ellipse').remove();
+            var rainData = this.track.rainData;
+            var point = this.map.latLngToLayerPoint([rainData.lat, rainData.lng]);
+            var heightInPixels = MathUtils.radiusToPixels([rainData.lng, rainData.lat], rainData.radiusY, this.projection);
+            var widthInPixels = MathUtils.radiusToPixels([rainData.lng, rainData.lat], rainData.radiusX, this.projection);
+
+            rainEllipseLayer.append('ellipse')
+              .attr('cx', point.x)
+              .attr('cy', point.y)
+              .attr('rx', widthInPixels)
+              .attr('ry', heightInPixels)
+              .attr('fill', 'none')
+              .attr('stroke', '#fff')
+              .style('transform', 'rotate(' + rainData.rotation + 'deg)')
+              .attr('stroke', '#fff')
+              .attr('stroke-width', 3)
+              .attr('stroke-dasharray', '5, 3')
+              .style('transform-origin', '50% 50%');
+          }
+        }
       });
     })();
   </script>
