@@ -1,0 +1,12 @@
+{
+  "entryPoint": "index.html",
+  "shell": "src/storm-app/storm-app.html",
+  "sources": [
+    "src/**/*",
+    "images/**/*",
+    "bower.json"
+  ],
+  "includeDependencies": [
+    "bower_components/webcomponentsjs/webcomponents-lite.min.js"
+  ]
+}
