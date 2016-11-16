@@ -22,6 +22,22 @@
       return [lon2 * rad2deg, lat2 * rad2deg];
     },
 
+    getGeographicalDistance: function(coords1, coords2) {
+      var R = 6371; //earth's radius in km — change to whatever unit you plan on using (e.g. miles = 3959)
+      var deg2rad = Math.PI/180; // convert degrees to radians
+
+      var coordsRad1 = [coords1[0] * deg2rad, coords1[1] * deg2rad];
+      var coordsRad2 = [coords2[0] * deg2rad, coords2[1] * deg2rad];
+      var changeCoords = [(coords2[0] - coords1[0]) * deg2rad, (coords2[1] - coords1[1]) * deg2rad];
+
+      var a = Math.sin(changeCoords[1]/2) * Math.sin(changeCoords[1]/2) +
+        Math.cos(coordsRad1[1]) * Math.cos(coordsRad2[1]) *
+        Math.sin(changeCoords[0]/2) * Math.sin(changeCoords[0]/2);
+      var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+      return R * c;
+    },
+
     /**
      * Transforms a geographic distance into pixel distance
      * @params {Array} coords Coordinates in [lon, lat]
