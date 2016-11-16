@@ -2,6 +2,7 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../../bower_components/paper-slider/paper-slider.html">
 <link rel="import" href="datetime-picker.html">
 
 <dom-module id="present-data-form">
@@ -35,7 +36,8 @@
       }
 
       .button-form {
-        height: 48px;
+        padding-top: 10px;
+        padding-bottom: 10px;
       }
     </style>
     <div class="storm-name">
@@ -80,6 +82,14 @@
     </paper-input>
     <paper-input label="Maximum Time of Cone in Hours" type="number" value="{{track.maxTimeOfCone}}"></paper-input>
     <div class="button-form">
+      <div class="label">Cone Opacity</div>
+      <paper-slider min="0" max="1" value="{{track.coneOpacity}}" step="0.05" pin snaps></paper-slider>
+    </div>
+    <div class="button-form">
+      <div class="label">Wind Circles Opacity</div>
+      <paper-slider min="0" max="1" value="{{track.windCirclesOpacity}}" step="0.05" pin snaps></paper-slider>
+    </div>
+    <div class="button-form">
       <paper-toggle-button checked="{{track.drawBeyond3Days}}">Draw beyond three days</paper-toggle-button>
     </div>
     <div class="button-form">
@@ -94,6 +104,7 @@
     <div class="button-form">
       <paper-button on-click="_fullScreenClicked">Enter Fullscreen</paper-button>
     </div>
+    
   </template>
   <script>
     Polymer({

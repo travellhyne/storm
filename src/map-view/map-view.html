@@ -16,7 +16,7 @@
         width: 100%;
         position: relative;
       }
-
+      
       :host(.fullscreen) {
         display: block;
         position: fixed;
@@ -32,7 +32,7 @@
         width: 100%;
         z-index: 1;
       }
-
+      
       #ccontainer {
         position: absolute;
         top: 0;
@@ -41,12 +41,319 @@
         height: 100%;
         z-index: 0;
       }
+      
+      .tc-info {
+        display: none;
+        position: absolute;
+        height: 100%;
+        width: 350px;
+        background-color: #343434;
+        top: 0;
+        left: 0;
+        color: white;
+        z-index: 50;
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+        padding: 10px 20px;
+      }
+      
+      .tc-info > div {
+        padding: 5px 0;
+      }
+      
+      .visible {
+        display: block;
+      }
+      
+      .tc-title,
+      .tc-num {
+        font-size: 18px;
+        font-weight: 500;
+      }
+      
+      .underline {
+        text-decoration: underline;
+      }
+      
+      .tc-legend {
+        display: block;
+        font-size: 14px;
+        border: 1px solid #fff;
+      }
+      
+      .tc-legend * {
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+      }
+      
+      .tc-legend .row {
+        height: 24px;
+        display: -webkit-box;
+        display: -moz-box;
+        display: -webkit-flex;
+        display: -ms-flexbox;
+        display: box;
+        display: flex;
+        -webkit-box-orient: horizontal;
+        -moz-box-orient: horizontal;
+        -o-box-orient: horizontal;
+        -webkit-flex-direction: row;
+        -ms-flex-direction: row;
+        flex-direction: row;
+        text-align: center;
+        -webkit-box-align: center;
+        -moz-box-align: center;
+        -o-box-align: center;
+        -ms-flex-align: center;
+        -webkit-align-items: center;
+        align-items: center;
+      }
+      
+      .tc-legend .first-col {
+        width: 40px;
+        display: -webkit-box;
+        display: -moz-box;
+        display: -webkit-flex;
+        display: -ms-flexbox;
+        display: box;
+        display: flex;
+        -webkit-box-orient: horizontal;
+        -moz-box-orient: horizontal;
+        -o-box-orient: horizontal;
+        -webkit-flex-direction: row;
+        -ms-flex-direction: row;
+        flex-direction: row;
+        -webkit-box-align: center;
+        -moz-box-align: center;
+        -o-box-align: center;
+        -ms-flex-align: center;
+        -webkit-align-items: center;
+        align-items: center;
+        -webkit-box-pack: center;
+        -moz-box-pack: center;
+        -o-box-pack: center;
+        -ms-flex-pack: center;
+        -webkit-justify-content: center;
+        justify-content: center;
+      }
+      
+      .tc-legend .first-col span {
+        display: block;
+      }
+      
+      .tc-legend .second-col {
+        display: -webkit-box;
+        display: -moz-box;
+        display: -webkit-flex;
+        display: -ms-flexbox;
+        display: box;
+        display: flex;
+        -webkit-box-orient: horizontal;
+        -moz-box-orient: horizontal;
+        -o-box-orient: horizontal;
+        -webkit-flex-direction: row;
+        -ms-flex-direction: row;
+        flex-direction: row;
+        -webkit-box-flex: 1;
+        -moz-box-flex: 1;
+        -o-box-flex: 1;
+        box-flex: 1;
+        -webkit-flex: 1;
+        -ms-flex: 1;
+        flex: 1;
+        -webkit-box-align: center;
+        -moz-box-align: center;
+        -o-box-align: center;
+        -ms-flex-align: center;
+        -webkit-align-items: center;
+        align-items: center;
+      }
+      
+      .tc-legend .violet,
+      .tc-legend .red,
+      .tc-legend .orange,
+      .tc-legend .yellow {
+        width: 25px;
+        height: 15px;
+      }
+      
+      .tc-legend .violet {
+        background-color: #ee82ee;
+      }
+      
+      .tc-legend .red {
+        background-color: #f00;
+      }
+      
+      .tc-legend .orange {
+        background-color: #ffa500;
+      }
+      
+      .tc-legend .yellow {
+        background-color: #ff0;
+      }
+      
+      .tc-legend .current {
+        width: 15px;
+        height: 15px;
+        background-color: #00fd00;
+        -webkit-border-radius: 100%;
+        border-radius: 100%;
+        border: 1px solid #000;
+      }
+      
+      .tc-legend .forecast {
+        width: 25px;
+        height: 2px;
+        background-color: #00c0ff;
+      }
+      
+      .tc-legend .previous {
+        width: 25px;
+        height: 2px;
+        background-color: #fff;
+      }
+      
+      .tc-legend .uncertainty {
+        width: 25px;
+        height: 15px;
+        background-color: #fde3b5;
+      }
+      
+      .tc-legend .high {
+        background-color: #f48486;
+        width: 15px;
+        height: 15px;
+        -webkit-border-radius: 100%;
+        border-radius: 100%;
+        border: 1px solid #000;
+      }
+      
+      .tc-legend .mid {
+        background-color: #ffcad5;
+        width: 15px;
+        height: 15px;
+        -webkit-border-radius: 100%;
+        border-radius: 100%;
+        border: 1px solid #000;
+      }
+      
+      .tc-legend .low {
+        background-color: #71cefb;
+        width: 15px;
+        height: 15px;
+        -webkit-border-radius: 100%;
+        border-radius: 100%;
+        border: 1px solid #000;
+      }
+      
+      .tc-legend .rc {
+        width: 16px;
+        height: 16px;
+        border: 2px dashed #efefef;
+        -webkit-border-radius: 100%;
+        border-radius: 100%;
+      }
+
+      .logo {
+        display: none;
+        position: absolute;
+        top: 10px;
+        right: 10px;
+      }
+
+      .logo.visible {
+        display: block;
+        z-index: 50;
+      }
+      
     </style>
     <div id="mapContainer"></div>
     <div id="ccontainer">
       <canvas id="rainAreaCanvas"></canvas>
     </div>
     <iron-a11y-keys target="[[target]]" keys="esc" on-keys-pressed="onEscape"></iron-a11y-keys>
+    <div class$="tc-info {{_computeVisibility(fullscreen)}}">
+      <div class="tc-num">
+        <span>[[_computeTCNumber(track.index, track.final)]]</span>
+      </div>
+      <div class="tc-date">
+        <span>[[_computeDate(track.date, track.time)]]</span>
+      </div>
+      <div class="tc-title">
+        <span>[[_computeTCName(track.windspeed, storm.internationalName, storm.localName)]]</span>
+      </div>
+      <div class="tc-location">
+        <span>[[_computeTCLocation(track.lat, track.lng)]]</span>
+      </div>
+      <div class="tc-winds">
+        <span>With maximum sustained winds of <span class="underline">[[track.windspeed]] kph</span>        and gustiness of up to <span class="underline">[[track.gustiness]] kph</span> near the center.</span>
+        <span>It is currently moving <span class="underline">[[track.forecastMovement]]</span> towards <span class="underline">[[track.movingTowards]]</span>.</span>
+        <span>Its minimum pressure is about <span class="underline">[[track.minPressure]] millibars (hPa)</span>[[_computeWaveHeight(track.maxSWHeight)]]</span>
+      </div>
+      <h4>Legends</h4>
+      <div class="tc-legend">
+        <div class="container">
+          <div class="row">
+            <div class="first-col"><span class="current"></span></div>
+            <div class="second-col">Current Position</div>
+          </div>
+          <div class="row">
+            <div class="first-col"><span class="forecast"></span></div>
+            <div class="second-col">Forecast Track</div>
+          </div>
+          <div class="row">
+            <div class="first-col"><span class="previous"></span></div>
+            <div class="second-col">Previous Track</div>
+          </div>
+          <div class="row">
+            <div class="first-col"><span class="uncertainty"></span></div>
+            <div class="second-col">Area of Uncertainty</div>
+          </div>
+          <div class="row">
+            <div class="first-col"><span style="font-weight: bold; font-family: 'Times New Roman', serif; color: red; font-size: 14px;">L</span></div>
+            <div class="second-col">Low Pressure Area</div>
+          </div>
+          <div class="row">
+            <div class="first-col"><img src="/images/tropical_depression.png" alt="Tropical Depression" class="td"></div>
+            <div class="second-col">Tropical Depression</div>
+          </div>
+          <div class="row">
+            <div class="first-col"><img src="/images/tropical-storm.png" alt="Tropical Storm" class="ts"></div>
+            <div class="second-col">Tropical Storm</div>
+          </div>
+          <div class="row">
+            <div class="first-col"><img src="/images/typhoon.png" alt="Typhoon or Super Typhoon" class="ty"></div>
+            <div class="second-col">Typhoon or Super Typhoon</div>
+          </div>
+          <div class="row">
+            <div class="first-col"><span class="high"></span></div>
+            <div class="second-col">Area of 130 kph or more Wind Gusts</div>
+          </div>
+          <div class="row">
+            <div class="first-col"><span class="mid"></span></div>
+            <div class="second-col">Area of 101-130 kph Wind Gusts</div>
+          </div>
+          <div class="row">
+            <div class="first-col"><span class="low"></span></div>
+            <div class="second-col">Area of 75-100 kph Wind Gusts</div>
+          </div>
+          <div class="row">
+            <div class="first-col"><span class="rc"></span></div>
+            <div class="second-col">Rain Circulation Area</div>
+          </div>
+        </div>
+      </div>
+      <div class="footer">
+        <span>&copy; WeatherPhilippines Foundation Inc.</span>
+      </div>
+    </div>
+
+    <div class$="logo [[_computeVisibility(fullscreen)]]">
+      <img src="/images/WPFLogo.png" alt="WeatherPhilippines">
+    </div>
   </template>
   <script>
     (function() {
@@ -149,7 +456,8 @@
           fullscreen: {
             type: Boolean,
             observer: '_enterFullscreen',
-            notify: true
+            notify: true,
+            value: true
           },
 
           target: {
@@ -182,7 +490,66 @@
         onEscape: function() {
           this.fullscreen = false;
         },
+
+        _computeTCName: function(speed, intName, locName) {
+          var windSpeed = _.toNumber(speed) || 0;
+          var tcState = '';
+          var tcName = '';
+          if (windSpeed <= 61) {
+            tcState = 'Tropical Depression';
+          } else if (windSpeed > 61 && windSpeed <= 117) {
+            tcState = 'Tropical Storm';
+          } else if (windSpeed > 117 && windSpeed <= 219) {
+            tcState = 'Typhoon';
+          } else if (windSpeed > 219) {
+            tcState = 'Super Typhoon';
+          }
+
+          if (!locName) {
+            tcName = intName;
+          } else if (!intName) {
+            tcName = locName;
+          } else {
+            tcName = intName + ' (' + locName + ')';
+          }
+
+          return tcState + ' ' + tcName;
+        },
+
+        _computeVisibility: function(fullscreen) {
+          if (fullscreen) {
+            return 'visible';
+          }
+        },
+
+        _computeTCNumber: function(index, final) {
+          if (final) {
+            return 'Final Update #' + _.padStart(index, 3, '0');
+          } else {
+            return 'Update #' + _.padStart(index, 3, '0');
+          }
+        },
+
+        _computeDate: function(date, time) {
+          return moment(date + '-' + time, 'YYYY-MM-DD-HH').format('h A MMM DD, YYYY')
+        },
         
+        _computeTCLocation: function(lat, lng) {
+          var lat = (_.toNumber(lat) || 0).toFixed(1);
+          var lng = (_.toNumber(lng) || 0).toFixed(1);
+
+          var latText = lat > 0 ? lat + ' °N': lat + ' °S';
+          var lngText = lng > 0 ? lng + ' °E': lng + ' °W';
+
+          return 'Last located near ' + latText + ', ' + lngText;
+        },
+
+        _computeWaveHeight: function(wh) {
+          if (_.toNumber(wh)) {
+            return ' with maximum seawave height of about ' + _.toNumber(wh) + ' meters.';
+          }
+          return '.';
+        },
         attached: function() {
           this.map = L.map(this.$.mapContainer, {minZoom: 4, maxZoom: 7}).setView([14, 120], 6);
           L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoidHJhdmVsbGh5bmUiLCJhIjoiQkFTdnQtSSJ9.iZRyvumNP3rOmiaC-9ojcQ', {
@@ -284,8 +651,6 @@
           this.forecastTrackMarkers = [];
           this.pastTrackMarkers = [];
 
-          this.windLayer.style('opacity', 0.3);
-
           svg.append('svg:defs')
             .append('svg:marker')
             .attr('id', 'triangle_marker')
@@ -361,8 +726,8 @@
           }
           this.canvasOverlay = new L.CanvasOverlay()
             .drawing(function(canvasOverlay, params) {
-              params.canvas.style.opacity = '0.5';
-              params.canvas.style.zIndex = '0';
+              params.canvas.style.opacity = _.toNumber(self.track.coneOpacity) || 0;
+              params.canvas.style.zIndex = '-1';
               var ctx = params.canvas.getContext('2d');
               var forecastTrackCoords = [];
               ctx.clearRect(0, 0, params.canvas.width, params.canvas.height);
@@ -505,6 +870,8 @@
           windLayer.selectAll('.wind-radius1').remove();
           windLayer.selectAll('.wind-radius2').remove();
           windLayer.selectAll('.wind-radius3').remove();
+          windLayer.style('opacity', _.toNumber(this.track.windCirclesOpacity) || 0);
+          
 
           var forecastArray = [];
           if (_.isArray(track.forecastData) && !_.isEmpty(track.forecastData)) {
