@@ -24,6 +24,10 @@
         flex-grow: 1;
         margin: 9px 0;
       }
+      a {
+        text-decoration: none;
+        color: var(--paper-teal-50);
+      }
 
       iron-icon {
         margin-right: 0.5em;
@@ -40,7 +44,7 @@
       }
     </style>
     <iron-icon icon="home"></iron-icon>
-    <h1>Storm</h1>
+    <h1><a href="/storms">Storms</a></h1>
     <iron-icon icon="cloud" hidden$="[[!online]]"></iron-icon>
     <iron-icon icon="cloud-off" hidden$="[[online]]"></iron-icon>
     <paper-icon-button icon="[[_computeLockIcon(signedIn)]]" disabled="[[!signedIn]]" on-tap="lock"></paper-icon-button>
