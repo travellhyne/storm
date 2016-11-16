@@ -63,7 +63,7 @@
         </paper-tabs>
         <iron-pages selected="{{selectedTab}}">
           <div class="present-data">
-            <present-data-form storm="[[storm]]" track="{{track}}"></present-data-form>
+            <present-data-form storm="[[storm]]" track="{{track}}" draw-rain-area="{{drawRainArea}}" on-enter-fullscreen="_enterFullscreen"></present-data-form>
           </div>
           <div class="forecast-data">
             <forecast-data-form forecast-data="{{track.forecastData}}"></forecast-data-form>
@@ -74,7 +74,7 @@
         </iron-pages>
       </div>
       <div class="main">
-        <map-view track="{{track}}"></map-view>
+        <map-view track="{{track}}" draw-rain-area="{{drawRainArea}}" fullscreen="{{mapFullscreen}}"></map-view>
       </div>
     </div>
   </template>
@@ -90,6 +90,10 @@
         track: {
           type: Object,
           notify: true
+        },
+        drawRainArea: {
+          type: Boolean,
+          value: false
         }
       },
 
@@ -97,6 +101,10 @@
         if (stormId && trackId && stormId !== 'list' && trackId !== 'info') {
           return '/storms/' + stormId + '/tracks/' + trackId;
         }
+      },
+
+      _enterFullscreen: function() {
+        this.mapFullscreen = true;
       }
     });
   </script>
