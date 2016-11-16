@@ -20,6 +20,34 @@
       iron-pages, iron-pages > div {
         height: 100%;
       }
+
+      .main {
+        @apply(--layout-vertical);
+        @apply(--layout-center-center);
+        width: 100%;
+        max-width: 500px;
+        padding: 8px 16px;
+        margin: 0 auto;
+      }
+
+      .main > paper-input {
+        width: 100%;
+      }
+
+      .button-row {
+        padding: 16px;
+        @apply(--layout-horizontal);
+        @apply(--layout-center-center);
+      }
+
+      .button-row a {
+        text-decoration: none;
+        color: var(--paper-green-50);
+      }
+
+      #goBtn {
+        background-color: var(--paper-green-500);        
+      }
     </style>
     <app-route 
       route="{{route}}" 
@@ -59,8 +87,10 @@
         <paper-input 
           label="Local Name"
           value="{{persistedStorm.localName}}"></paper-input>
-        <div>
-          <a href$="/storms/[[stormId]]/tracks">Go to tracks</a>
+        <div class="button-row">
+          <a href$="/storms/[[stormId]]/tracks">
+            <paper-button raised id="goBtn">Go to Tracks</paper-button>
+          </a>
         </div>
       </div>
       <div class="list" view="tracks">
@@ -71,6 +101,7 @@
           route="{{subRoute}}"
           on-add-track="_addTrack"
           storm="[[persistedStorm]]"
+          on-delete-track="_deleteTrack"
           ></track-list>
       </div>
     </iron-pages>
@@ -104,11 +135,22 @@
         }
       },
 
-      _addTrack: function() {
+      _addTrack: function(e) {
         var path = '/storms/' + this.stormId + '/tracks';
-        this.firebaseApp.database().ref(path).push({
-          index: this.tracks.length
-        });
+        if (e.detail.track) {
+          this.firebaseApp.database().ref(path).push(e.detail.track)
+        } else {
+          this.firebaseApp.database().ref(path).push({
+            index: this.tracks.length
+          });
+        }
+      },
+
+      _deleteTrack: function(e) {
+        var path = '/storms/' + this.stormId + '/tracks';
+        if (e.detail.key) {
+          this.firebaseApp.database().ref(path + '/' + e.detail.key).remove();
+        }
       }
     });
   </script>

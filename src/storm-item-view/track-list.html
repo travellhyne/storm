@@ -2,6 +2,10 @@
 <link rel="import" href="../../bower_components/app-route/app-route.html">
 <link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/iron-swipeable-container/iron-swipeable-container.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../utils/lodash-import.html">
 
 <link rel="import" href="../track-editor/track-editor.html">
 
@@ -11,37 +15,80 @@
       :host {
         display: block;
         height: 100%;
+        overflow-y: scroll;
       }
-
-      iron-pages, iron-pages > div {
+      
+      iron-pages,
+      iron-pages > div {
         height: 100%;
       }
+
+      .main {
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+      }
+
+      .main h1 {
+        text-align: center;
+      }
+
+      .track-item {
+        @apply(--layout-horizontal);
+        @apply(--layout-center);
+        padding: 15px 10px;
+        width: 100%;
+        background-color: #fff;
+        border: 1px solid black;
+        font-size: 16px;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        -o-user-select: none;
+        user-select: none;
+      }
+
+      .link {
+        @apply(--layout-flex);
+      }
+      .link a {
+        text-decoration: none;
+        color: #343434;
+      }
+
+      .button-row {
+        padding: 16px 0;
+        @apply(--layout-horizontal);
+        @apply(--layout-center-center);
+      }
+
+      .button-row paper-button {
+        background-color: var(--paper-red-500);
+        color: var(--paper-red-50);
+      }
     </style>
-    <app-route
-      route="{{route}}"
-      data="{{routeData}}"
-      pattern="/:trackId"
-      tail="{{subRoute}}"></app-route>
-    <iron-pages 
-      attr-for-selected="view"
-      selected="{{selectedView}}">
+    <app-route route="{{route}}" data="{{routeData}}" pattern="/:trackId" tail="{{subRoute}}"></app-route>
+    <iron-pages attr-for-selected="view" selected="{{selectedView}}">
 
       <div class="main" view="list">
         <h1>Tracks</h1>
-        <template is="dom-repeat" items="{{tracks}}" as="track">
-          <div>
-            <a href="/storms/[[stormId]]/tracks/[[track.$key]]">Track #[[track.index]]</a>
-          </div>
-        </template>
-        <paper-button on-tap="_addTrack">Add new track</paper-button>
+        <iron-swipeable-container on-iron-swipe="_swipeTrack">
+          <template is="dom-repeat" items="{{tracks}}" as="track">
+            <div class="track-item" data-key$="[[track.$key]]">
+              <div class="link">
+                <a href="/storms/[[stormId]]/tracks/[[track.$key]]">[[_computeTrackIndex(track.index, index)]]</a>
+              </div>
+              <div class="control"><paper-button on-tap="_duplicateItem">Copy</paper-button></div>
+            </div>
+          </template>
+        </iron-swipeable-container>
+        <div class="button-row">
+          <paper-button on-tap="_addTrack" raised>Add new track</paper-button>
+        </div>
       </div>
 
       <div view="track-view">
-        <track-editor 
-          storm="[[storm]]" 
-          storm-id="[[stormId]]"
-          track-id="[[selectedTrack]]"
-          route="{{subRoute}}"></track-editor>
+        <track-editor storm="[[storm]]" storm-id="[[stormId]]" track-id="[[selectedTrack]]" route="{{subRoute}}"></track-editor>
       </div>
     </iron-pages>
   </template>
@@ -51,13 +98,28 @@
 
       properties: {
         selectedView: String,
-        selectedTrack: String
+        selectedTrack: String,
       },
 
       observers: [
         '_pathChanged(route.path)',
         '_trackIdChanged(routeData.trackId)'
       ],
+
+      _computeTrackIndex: function(trackIndex, index) {
+        if (this.tracks[index].final) {
+          return 'Final Update #' + _.padStart(trackIndex, 3, '0');
+        } else {
+          return 'Update #' + _.padStart(trackIndex, 3, '0');
+        }
+      },
+
+      _duplicateItem: function(e) {
+         var track = e.model.track;
+         var clonedTrack = _.clone(track);
+         delete clonedTrack['$key'];
+         this.fire('add-track', {track: clonedTrack});
+      },
 
       _addTrack: function() {
         this.fire('add-track');
@@ -75,6 +137,10 @@
         if (trackId) {
           this.selectedTrack = trackId;
         }
+      },
+
+      _swipeTrack: function(e) {
+        this.fire('delete-track', {key: e.detail.target.dataset.key});
       }
     });
   </script>
