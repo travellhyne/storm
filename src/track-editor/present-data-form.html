@@ -1,6 +1,7 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="datetime-picker.html">
 
 <dom-module id="present-data-form">
@@ -32,6 +33,10 @@
       .row-form >:not(:last-child) {
         margin-right: 10px;
       }
+
+      .button-form {
+        height: 48px;
+      }
     </style>
     <div class="storm-name">
       <h2>Tropical Cyclone [[_calculateStormName(storm.internationalName, storm.localName)]]</h2>
@@ -50,7 +55,7 @@
         <span suffix>deg</span>
       </paper-input>
     </div>
-    <paper-input label="Wind Speed" type="number" value="{{track.windSpeed}}" min="0.0" step="0.1">
+    <paper-input label="Wind Speed" type="number" value="{{track.windspeed}}" min="0.0" step="0.1">
       <div suffix>kph</div>
     </paper-input>
     <paper-input label="Gustiness" type="number" value="{{track.gustiness}}" min="0.0" step="0.1">
@@ -74,10 +79,38 @@
       <div suffix>hPa</div>
     </paper-input>
     <paper-input label="Maximum Time of Cone in Hours" type="number" value="{{track.maxTimeOfCone}}"></paper-input>
+    <div class="button-form">
+      <paper-toggle-button checked="{{track.drawBeyond3Days}}">Draw beyond three days</paper-toggle-button>
+    </div>
+    <div class="button-form">
+      <paper-toggle-button checked="{{track.noArrow}}">No arrow at end</paper-toggle-button>
+    </div>
+    <div class="button-form">
+      <paper-toggle-button checked="{{track.final}}">Final Track</paper-toggle-button>
+    </div>
+    <div class="button-form">
+      <paper-toggle-button checked="{{drawRainArea}}">Draw Rain Area</paper-toggle-button>
+    </div>
+    <div class="button-form">
+      <paper-button on-click="_fullScreenClicked">Enter Fullscreen</paper-button>
+    </div>
   </template>
   <script>
     Polymer({
       is: 'present-data-form',
+
+      properties: {
+        drawRainArea: {
+          type: Boolean,
+          notify: true
+        }
+      },
+
+      _fullScreenClicked: function() {
+        if (!this.drawRainArea) {
+          this.fire('enter-fullscreen');
+        }
+      },
 
       _calculateStormName: function(intName, locName) {
         if (!locName) {
