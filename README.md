@@ -11,7 +11,7 @@ New and improved storm tracking app
 ## Initialize app
 
 ```
-  bower install
+  bower install && firebase init
 ```
 
 ## Build App
@@ -33,3 +33,4 @@ This will serve the bundled build
 ```
   firebase deploy
 ```
+Deploys to your firebase app
