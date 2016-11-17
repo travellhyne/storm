@@ -6,7 +6,7 @@ New and improved storm tracking app
 
 ```
   npm install -g bower polymer-cli firebase-tools
-``
+```
 
 ## Initialize app
 
