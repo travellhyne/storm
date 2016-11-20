@@ -24,7 +24,7 @@
     "paper-toggle-button": "PolymerElements/paper-toggle-button#^1.2.1",
     "leaflet": "^1.0.1",
     "javascript-detect-element-resize": "^0.5.3",
-    "d3": "^4.3.0",
+    "d3": "~3.5.11",
     "lodash": "^4.16.6",
     "fabric.js": "fabric#^1.6.7",
     "iron-a11y-keys": "PolymerElements/iron-a11y-keys#^1.0.6",
