@@ -682,13 +682,13 @@
             return [coord.lng, coord.lat];
           }.bind(this);
 
-          this.pathLine = d3.line()
+          this.pathLine = d3.svg.line().interpolate('cardinal')
             .x(function(d) {
               return this.projection(d)[0];
             }.bind(this))
             .y(function(d) {
               return this.projection(d)[1];
-            }.bind(this)).curve(d3.curveCatmullRom);
+            }.bind(this));
           
           this._plotPAR();
           this._drawWindCircles();
@@ -1204,7 +1204,7 @@
 
           var labelLineEndCoord = (labelPoint[0] >= point[0]) ? labelLeftCoord : labelRightCoord;
 
-          var pathLine = d3.line()
+          var pathLine = d3.svg.line().interpolate('linear')
             .x(function(d) {
               return self.projection(d)[0];
             })
@@ -1243,7 +1243,7 @@
 
             var labelLineEndCoord = (labelPoint[0] >= point[0]) ? labelLeftCoord : labelRightCoord;
 
-            var pathLine = d3.line()
+            var pathLine = d3.svg.line().interpolate('linear')
               .x(function(d) {
                 return self.projection(d)[0];
               })
@@ -1281,7 +1281,7 @@
 
             var labelLineEndCoord = (labelPoint[0] >= point[0]) ? labelLeftCoord : labelRightCoord;
 
-            var pathLine = d3.line()
+            var pathLine = d3.svg.line().interpolate('linear')
               .x(function(d) {
                 return self.projection(d)[0];
               })
