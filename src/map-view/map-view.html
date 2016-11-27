@@ -15,6 +15,9 @@
         height: 100%;
         width: 100%;
         position: relative;
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
       }
       
       :host(.fullscreen) {
@@ -25,6 +28,8 @@
         bottom: 0;
         right: 0;
         z-index: 100;
+        background-color: #000;
+        padding: 20px;
       }
       
       #mapContainer {
@@ -45,41 +50,59 @@
       .tc-info {
         display: none;
         position: absolute;
-        height: 100%;
-        width: 350px;
-        background-color: #343434;
-        top: 0;
-        left: 0;
-        color: white;
-        z-index: 50;
+        top: 20px;
+        left: 20px;
+        background-color: #fff;
         -webkit-box-sizing: border-box;
         -moz-box-sizing: border-box;
         box-sizing: border-box;
-        padding: 10px 20px;
+        padding: 10px;
+        border: 2px solid #000;
+        line-height: 13pt;
       }
       
-      .tc-info > div {
-        padding: 5px 0;
+      .tc-info .typhoon-name > span {
+        color: #3f9f3e;
+        border-bottom: 1px solid #3f9f3e;
+        font-size: 16px;
       }
       
-      .visible {
+      .tc-info .typhoon-name > span:not(:first-child) {
+        text-transform: uppercase;
+      }
+      
+      .tc-info .track-date {
+        color: #0202bf;
+        font-size: 16px;
+      }
+      
+      .tc-info .track-date span {
         display: block;
       }
       
-      .tc-title,
-      .tc-num {
-        font-size: 18px;
-        font-weight: 500;
+      .tc-info .title {
+        color: #bd0000;
+        border-bottom: 1px solid #000;
+        font-size: 16px;
       }
       
-      .underline {
-        text-decoration: underline;
+      .tc-info .storm-info {
+        font-size: 12px;
       }
       
       .tc-legend {
-        display: block;
-        font-size: 14px;
-        border: 1px solid #fff;
+        display: none;
+        position: absolute;
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+        bottom: 20px;
+        right: 20px;
+        width: 230px;
+        font-size: 10px;
+        padding: 5px;
+        border: 2px solid #000;
+        background-color: #1b9a9a;
       }
       
       .tc-legend * {
@@ -171,30 +194,6 @@
         align-items: center;
       }
       
-      .tc-legend .violet,
-      .tc-legend .red,
-      .tc-legend .orange,
-      .tc-legend .yellow {
-        width: 25px;
-        height: 15px;
-      }
-      
-      .tc-legend .violet {
-        background-color: #ee82ee;
-      }
-      
-      .tc-legend .red {
-        background-color: #f00;
-      }
-      
-      .tc-legend .orange {
-        background-color: #ffa500;
-      }
-      
-      .tc-legend .yellow {
-        background-color: #ff0;
-      }
-      
       .tc-legend .current {
         width: 15px;
         height: 15px;
@@ -256,104 +255,143 @@
         -webkit-border-radius: 100%;
         border-radius: 100%;
       }
-
+      
       .logo {
         display: none;
         position: absolute;
-        top: 10px;
-        right: 10px;
+        top: 20px;
+        right: 20px;
       }
 
-      .logo.visible {
+      .mg-logo {
+        display: none;
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+      }
+
+      footer {
+        display: none;
+        color: #fff;
+        font-family: Arial, sans-serif;
+        position: absolute;
+        bottom: 0;
+        left: 20px;
+        right: 20px;
+        height: 15px;
+      }
+
+      footer .left {
+        font-size: 10px;
+        font-weight: bold;
+      }
+
+      footer .right {
+        position: relative;
+        top: -10px;
+        float: right;
+        text-align: right;
+        font-size: 10px;
+        font-style: italic;
+      }
+      
+      .logo.visible, .tc-info.visible, .tc-legend.visible, 
+      .mg-logo.visible, footer.visible {
         display: block;
         z-index: 50;
       }
-      
     </style>
     <div id="mapContainer"></div>
     <div id="ccontainer">
       <canvas id="rainAreaCanvas"></canvas>
     </div>
     <iron-a11y-keys target="[[target]]" keys="esc" on-keys-pressed="onEscape"></iron-a11y-keys>
-    <div class$="tc-info {{_computeVisibility(fullscreen)}}">
-      <div class="tc-num">
-        <span>[[_computeTCNumber(track.index, track.final)]]</span>
+    <div class$="tc-info [[_computeVisibility(fullscreen)]]">
+      <div class="typhoon-name">
+        <span>
+          <span>[[tcState]]</span>
+          <span>[[tcName]]</span>
+        </span>
       </div>
-      <div class="tc-date">
-        <span>[[_computeDate(track.date, track.time)]]</span>
+      <div class="track-date">
+        <span>[[tcDate]]</span>
+        <span>[[tcTime]]<span style="color: #f0f; display: inline;">[[isFinal]]</span><span>
       </div>
-      <div class="tc-title">
-        <span>[[_computeTCName(track.windspeed, storm.internationalName, storm.localName)]]</span>
+      <div class="title">
+        WeatherPhilippines <i>Storm</i>Track #[[tcNumber]]
       </div>
-      <div class="tc-location">
-        <span>[[_computeTCLocation(track.lat, track.lng)]]</span>
+      <div class="storm-info">
+        <div>Current Center Location: Near [[tcLocation]]</div>
+        <div>Maximum Sustained Winds: [[track.windspeed]] kph | Gusts: [[track.gustiness]] kph</div>
+        <div>Min. Central Pressure: [[track.minPressure]] millibars(hPa)</div>
+        <div>Forecast Movement: [[track.forecastMovement]]</div>
+        <div>Towards: [[track.movingTowards]]</div>
+        <div>[[waveHeight]]</div>
       </div>
-      <div class="tc-winds">
-        <span>With maximum sustained winds of <span class="underline">[[track.windspeed]] kph</span>        and gustiness of up to <span class="underline">[[track.gustiness]] kph</span> near the center.</span>
-        <span>It is currently moving <span class="underline">[[track.forecastMovement]]</span> towards <span class="underline">[[track.movingTowards]]</span>.</span>
-        <span>Its minimum pressure is about <span class="underline">[[track.minPressure]] millibars (hPa)</span>[[_computeWaveHeight(track.maxSWHeight)]]</span>
-      </div>
-      <h4>Legends</h4>
-      <div class="tc-legend">
-        <div class="container">
-          <div class="row">
-            <div class="first-col"><span class="current"></span></div>
-            <div class="second-col">Current Position</div>
-          </div>
-          <div class="row">
-            <div class="first-col"><span class="forecast"></span></div>
-            <div class="second-col">Forecast Track</div>
-          </div>
-          <div class="row">
-            <div class="first-col"><span class="previous"></span></div>
-            <div class="second-col">Previous Track</div>
-          </div>
-          <div class="row">
-            <div class="first-col"><span class="uncertainty"></span></div>
-            <div class="second-col">Area of Uncertainty</div>
-          </div>
-          <div class="row">
-            <div class="first-col"><span style="font-weight: bold; font-family: 'Times New Roman', serif; color: red; font-size: 14px;">L</span></div>
-            <div class="second-col">Low Pressure Area</div>
-          </div>
-          <div class="row">
-            <div class="first-col"><img src="/images/tropical_depression.png" alt="Tropical Depression" class="td"></div>
-            <div class="second-col">Tropical Depression</div>
-          </div>
-          <div class="row">
-            <div class="first-col"><img src="/images/tropical-storm.png" alt="Tropical Storm" class="ts"></div>
-            <div class="second-col">Tropical Storm</div>
-          </div>
-          <div class="row">
-            <div class="first-col"><img src="/images/typhoon.png" alt="Typhoon or Super Typhoon" class="ty"></div>
-            <div class="second-col">Typhoon or Super Typhoon</div>
-          </div>
-          <div class="row">
-            <div class="first-col"><span class="high"></span></div>
-            <div class="second-col">Area of 130 kph or more Wind Gusts</div>
-          </div>
-          <div class="row">
-            <div class="first-col"><span class="mid"></span></div>
-            <div class="second-col">Area of 101-130 kph Wind Gusts</div>
-          </div>
-          <div class="row">
-            <div class="first-col"><span class="low"></span></div>
-            <div class="second-col">Area of 75-100 kph Wind Gusts</div>
-          </div>
-          <div class="row">
-            <div class="first-col"><span class="rc"></span></div>
-            <div class="second-col">Rain Circulation Area</div>
-          </div>
+    </div>
+    <div class$="tc-legend [[_computeVisibility(fullscreen)]]">
+      <div class="container">
+        <div class="row">
+          <div class="first-col"><span class="current"></span></div>
+          <div class="second-col">Current Position</div>
         </div>
-      </div>
-      <div class="footer">
-        <span>&copy; WeatherPhilippines Foundation Inc.</span>
+        <div class="row">
+          <div class="first-col"><span class="forecast"></span></div>
+          <div class="second-col">Forecast Track</div>
+        </div>
+        <div class="row">
+          <div class="first-col"><span class="previous"></span></div>
+          <div class="second-col">Previous Track</div>
+        </div>
+        <div class="row">
+          <div class="first-col"><span class="uncertainty" style$="background-color: [[_computeUncertaintyColor(track)]]"></span></div>
+          <div class="second-col">Area of Uncertainty</div>
+        </div>
+        <div class="row">
+          <div class="first-col"><span style="font-weight: bold; font-family: 'Times New Roman', serif; color: red; font-size: 14px;">L</span></div>
+          <div class="second-col">Low Pressure Area</div>
+        </div>
+        <div class="row">
+          <div class="first-col"><img src="/images/tropical_depression.png" alt="Tropical Depression" class="td"></div>
+          <div class="second-col">Tropical Depression</div>
+        </div>
+        <div class="row">
+          <div class="first-col"><img src="/images/tropical-storm.png" alt="Tropical Storm" class="ts"></div>
+          <div class="second-col">Tropical Storm</div>
+        </div>
+        <div class="row">
+          <div class="first-col"><img src="/images/typhoon.png" alt="Typhoon or Super Typhoon" class="ty"></div>
+          <div class="second-col">Typhoon or Super Typhoon</div>
+        </div>
+        <div class="row">
+          <div class="first-col"><span class="high" style$="background-color: [[_computeWindColor(track, 'high')]];"></span></div>
+          <div class="second-col">Area of 130 kph or more Wind Gusts</div>
+        </div>
+        <div class="row">
+          <div class="first-col"><span class="mid" style$="background-color: [[_computeWindColor(track, 'mid')]];"></span></div>
+          <div class="second-col">Area of 101-130 kph Wind Gusts</div>
+        </div>
+        <div class="row">
+          <div class="first-col"><span class="low" style$="background-color: [[_computeWindColor(track, 'low')]];"></span></div>
+          <div class="second-col">Area of 75-100 kph Wind Gusts</div>
+        </div>
+        <div class="row">
+          <div class="first-col"><span class="rc"></span></div>
+          <div class="second-col">Rain Circulation Area</div>
+        </div>
       </div>
     </div>
 
     <div class$="logo [[_computeVisibility(fullscreen)]]">
       <img src="/images/WPFLogo.png" alt="WeatherPhilippines">
     </div>
+    <div class$="mg-logo [[_computeVisibility(fullscreen)]]">
+      <img src="/images/MGLogo.png" alt="Meteogroup">
+    </div>
+    <footer class$="[[_computeVisibility(fullscreen)]]">
+      <div class="left">Copyright &copy; WeatherPhilippines &amp; Meteogroup. All Rights Reserved.</div>
+      <div class="right">Source: Meteogroup Data</div>
+    </footer>
   </template>
   <script>
     (function() {
@@ -445,7 +483,7 @@
         properties: {
           track: {
             type: Object,
-            notify: true
+            notify: true,
           },
 
           drawRainArea: {
@@ -456,15 +494,55 @@
           fullscreen: {
             type: Boolean,
             observer: '_enterFullscreen',
-            notify: true
+            notify: true,
           },
 
           target: {
             type: Object,
             value: function() {
               return this.$.mapContainer;
-            }
-          }
+            },
+          },
+
+          tcState: {
+            type: String,
+            computed: '_computeTCState(track)',
+          },
+
+          tcName: {
+            type: String,
+            computed: '_computeTCName(storm)',
+          },
+
+          tcDate: {
+            type: String,
+            computed: '_computeDate(track)'
+          },
+
+          tcTime: {
+            type: String,
+            computed: '_computeTime(track)',
+          },
+
+          isFinal: {
+            type: String,
+            computed: '_computeFinal(track)',
+          },
+
+          tcNumber: {
+            type: String,
+            computed: '_computeTCNumber(track)',
+          },
+
+          tcLocation: {
+            type: String,
+            computed: '_computeTCLocation(track)',
+          },
+
+          waveHeight: {
+            type: String,
+            computed: '_computeWaveHeight(track)',
+          },
         },
 
         observers: [
@@ -490,10 +568,8 @@
           this.fullscreen = false;
         },
 
-        _computeTCName: function(speed, intName, locName) {
-          var windSpeed = _.toNumber(speed) || 0;
-          var tcState = '';
-          var tcName = '';
+        _computeTCState: function(track) {
+          var windSpeed = _.toNumber(track.windspeed) || 0;
           if (windSpeed <= 61) {
             tcState = 'Tropical Depression';
           } else if (windSpeed > 61 && windSpeed <= 117) {
@@ -503,16 +579,21 @@
           } else if (windSpeed > 219) {
             tcState = 'Super Typhoon';
           }
+          return tcState;
+        },
 
-          if (!locName) {
-            tcName = intName;
-          } else if (!intName) {
-            tcName = locName;
+        _computeTCName: function(storm) {
+          var tcName = '';
+
+          if (!storm.localName) {
+            tcName = storm.internationalName;
+          } else if (!storm.internationalName) {
+            tcName = storm.localName;
           } else {
-            tcName = intName + ' (' + locName + ')';
+            tcName = storm.internationalName + ' (' + storm.localName + ')';
           }
 
-          return tcState + ' ' + tcName;
+          return tcName;
         },
 
         _computeVisibility: function(fullscreen) {
@@ -521,34 +602,61 @@
           }
         },
 
-        _computeTCNumber: function(index, final) {
-          if (final) {
-            return 'Final Update #' + _.padStart(index, 3, '0');
-          } else {
-            return 'Update #' + _.padStart(index, 3, '0');
-          }
+        _computeTCNumber: function(track) {
+          return _.padStart(track.index, 3, '0');
         },
 
-        _computeDate: function(date, time) {
-          return moment(date + '-' + time, 'YYYY-MM-DD-HH').format('h A MMM DD, YYYY')
+        _computeDate: function(track) {
+          return moment(track.date + '-' + track.time, 'YYYY-MM-DD-HH').format('MMM DD, YYYY')
+        },
+
+        _computeTime: function(track) {
+          return moment(track.date + '-' + track.time, 'YYYY-MM-DD-HH').format('h:mm A');          
+        },
+
+        _computeFinal: function(track) {
+          return track.final ? ' **FINAL** ' : '';
         },
         
-        _computeTCLocation: function(lat, lng) {
-          var lat = (_.toNumber(lat) || 0).toFixed(1);
-          var lng = (_.toNumber(lng) || 0).toFixed(1);
+        _computeTCLocation: function(track) {
+          var lat = (_.toNumber(track.lat) || 0).toFixed(1);
+          var lng = (_.toNumber(track.lng) || 0).toFixed(1);
 
           var latText = lat > 0 ? lat + ' °N': lat + ' °S';
           var lngText = lng > 0 ? lng + ' °E': lng + ' °W';
 
-          return 'Last located near ' + latText + ', ' + lngText;
+          return latText + ', ' + lngText;
         },
 
-        _computeWaveHeight: function(wh) {
-          if (_.toNumber(wh)) {
-            return ' with maximum seawave height of about ' + _.toNumber(wh) + ' meters.';
+        _computeWaveHeight: function(track) {
+          if (_.toNumber(track.maxSWHeight)) {
+            return 'Max Sea Wave Height: ' + _.toNumber(track.maxSWHeight) + ' meters.';
           }
-          return '.';
+          return '';
         },
+
+        _computeUncertaintyColor: function(track) {
+          var coneOpacity = _.toNumber(track.coneOpacity) || 0;
+          return 'rgba(253, 227, 181, ' + coneOpacity + ')';
+        },
+
+        _computeWindColor: function(track, state) {
+          var color = 'white';
+          var opacity = _.toNumber(track.windCirclesOpacity) || 0;
+          switch(state) {
+            case 'high': 
+              color = 'rgba(244, 132, 134, ' + opacity + ')';
+              break;
+            case 'mid':
+              color = 'rgba(255, 202, 213, ' + opacity + ')';
+              break;
+            case 'low':
+              color = 'rgba(113, 206, 251, ' + opacity + ')';
+              break;              
+          }
+          return color;
+        },
+
         attached: function() {
           this.map = L.map(this.$.mapContainer, {minZoom: 4, maxZoom: 7}).setView([14, 120], 6);
           L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoidHJhdmVsbGh5bmUiLCJhIjoiQkFTdnQtSSJ9.iZRyvumNP3rOmiaC-9ojcQ', {
@@ -1254,7 +1362,7 @@
             labelLineLayer.append('path')
               .attr('d', pathLine([coord, labelLineEndCoord]))
               .attr('class', 'forecast-label-line')
-              .attr('stroke', '#fff')
+              .attr('stroke', '#00c0ff')
               .attr('strokeWidth', '1.5px');
           });
         },
