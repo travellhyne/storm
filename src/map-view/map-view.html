@@ -607,11 +607,14 @@
         },
 
         _computeDate: function(track) {
-          return moment(track.date + '-' + track.time, 'YYYY-MM-DD-HH').format('MMM DD, YYYY')
+          return moment(track.date + '-' + track.time, 'YYYY-MM-DD-HH').format('MMMM DD, YYYY')
         },
 
         _computeTime: function(track) {
-          return moment(track.date + '-' + track.time, 'YYYY-MM-DD-HH').format('h:mm A');          
+          var date = moment(track.date + '-' + track.time, 'YYYY-MM-DD-HH');
+          var time = date.format('h:mm A');
+          var day = date.format('dddd');
+          return time + ' PhT ' + day;
         },
 
         _computeFinal: function(track) {
