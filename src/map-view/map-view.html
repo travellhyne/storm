@@ -263,13 +263,6 @@
         right: 20px;
       }
 
-      .mg-logo {
-        display: none;
-        position: absolute;
-        bottom: 20px;
-        left: 20px;
-      }
-
       footer {
         display: none;
         color: #fff;
@@ -284,15 +277,6 @@
       footer .left {
         font-size: 10px;
         font-weight: bold;
-      }
-
-      footer .right {
-        position: relative;
-        top: -10px;
-        float: right;
-        text-align: right;
-        font-size: 10px;
-        font-style: italic;
       }
       
       .logo.visible, .tc-info.visible, .tc-legend.visible, 
@@ -385,12 +369,8 @@
     <div class$="logo [[_computeVisibility(fullscreen)]]">
       <img src="/images/WPFLogo.png" alt="WeatherPhilippines">
     </div>
-    <div class$="mg-logo [[_computeVisibility(fullscreen)]]">
-      <img src="/images/MGLogo.png" alt="Meteogroup">
-    </div>
     <footer class$="[[_computeVisibility(fullscreen)]]">
-      <div class="left">Copyright &copy; WeatherPhilippines &amp; Meteogroup. All Rights Reserved.</div>
-      <div class="right">Source: Meteogroup Data</div>
+      <div class="left">Copyright &copy; WeatherPhilippines Foundation Inc. All Rights Reserved.</div>
     </footer>
   </template>
   <script>
